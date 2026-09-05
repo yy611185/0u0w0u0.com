@@ -22,21 +22,31 @@ export const NAV_LINKS = [
   { href: '#contact', label: '联系' }
 ]
 
-export type ImageAsset = { webp: string; fallback: string; alt: string }
-const asset = (name: string, ext: 'png' | 'jpg', alt: string): ImageAsset => ({
+/** Intrinsic dimensions are carried so every <img> can reserve layout space (CLS = 0). */
+export type ImageAsset = { webp: string; fallback: string; alt: string; w: number; h: number }
+
+const asset = (
+  name: string,
+  ext: 'png' | 'jpg',
+  alt: string,
+  w: number,
+  h: number
+): ImageAsset => ({
   webp: `/static/assets/webp/${name}.webp`,
   fallback: `/static/assets/${name}.${ext}`,
-  alt
+  alt,
+  w,
+  h
 })
 
 export const IMAGES = {
-  heroScene: asset('hero-scene', 'png', '夜晚书桌场景'),
-  catSleep: asset('cat-sleep', 'png', '午睡的猫'),
-  catLaptop: asset('cat-laptop', 'png', '趴在笔电旁的猫'),
-  nightCat: asset('bg-night-cat', 'jpg', '城市夜景与猫'),
-  projectYangfolio: asset('project-yangfolio', 'png', 'Yangfolio 项目预览'),
-  projectBlood: asset('project-blood', 'png', 'Blood Pressure Record 项目预览'),
-  projectHermes: asset('project-hermes', 'png', 'Hermes 项目预览')
+  heroScene: asset('hero-scene', 'jpg', '夜晚书桌场景', 1024, 576),
+  catSleep: asset('cat-sleep', 'png', '午睡的猫', 1024, 768),
+  catLaptop: asset('cat-laptop', 'png', '趴在笔电旁的猫', 819, 1024),
+  nightCat: asset('bg-night-cat', 'jpg', '城市夜景与猫', 1500, 843),
+  projectYangfolio: asset('project-yangfolio', 'jpg', 'Yangfolio 项目预览', 1024, 768),
+  projectBlood: asset('project-blood', 'jpg', 'Blood Pressure Record 项目预览', 1024, 768),
+  projectHermes: asset('project-hermes', 'jpg', 'Hermes 项目预览', 1024, 768)
 }
 
 export type Tag = { label: string; kind: 'finance' | 'web' | 'health' | 'data' | 'ai' | 'prod' | 'exp' }
@@ -77,12 +87,13 @@ export const PROJECTS: Project[] = [
   }
 ]
 
+/** `datetime` powers the semantic <time> element; `date` is the visible short form. */
 export const NOTES = [
-  { id: 'note-2026-09-05', date: '09.05', title: '最近一直在想的一些事' },
-  { id: 'note-2026-08-20', date: '08.20', title: '关于长期主义的思考' },
-  { id: 'note-2026-08-12', date: '08.12', title: '改变了我的工具' },
-  { id: 'note-2026-07-28', date: '07.28', title: '更有意思的互联网' },
-  { id: 'note-2026-07-11', date: '07.11', title: '在专业化世界里做一个通才' }
+  { id: 'note-2026-09-05', date: '09.05', datetime: '2026-09-05', title: '最近一直在想的一些事' },
+  { id: 'note-2026-08-20', date: '08.20', datetime: '2026-08-20', title: '关于长期主义的思考' },
+  { id: 'note-2026-08-12', date: '08.12', datetime: '2026-08-12', title: '改变了我的工具' },
+  { id: 'note-2026-07-28', date: '07.28', datetime: '2026-07-28', title: '更有意思的互联网' },
+  { id: 'note-2026-07-11', date: '07.11', datetime: '2026-07-11', title: '在专业化世界里做一个通才' }
 ]
 
 export const NOW_ITEMS = [
@@ -119,10 +130,10 @@ export type Photo =
   | { placeholder: string }
 
 export const PHOTOS: Photo[] = [
-  { image: { ...IMAGES.heroScene, alt: '夜晚书桌与灯光' }, cap: 'Nightdesk · 2026', span2: true, row2: true },
-  { image: IMAGES.catSleep, cap: 'Nap Time' },
-  { image: IMAGES.nightCat, cap: 'City Glow' },
-  { image: IMAGES.catLaptop, cap: 'Coworker' },
+  { image: { ...IMAGES.heroScene, alt: '深夜书桌：台灯、笔电与窗外的城市灯火' }, cap: 'Nightdesk · 2026', span2: true, row2: true },
+  { image: { ...IMAGES.catSleep, alt: '一只猫在午后蜷着身体睡觉' }, cap: 'Nap Time' },
+  { image: { ...IMAGES.nightCat, alt: '夜色中的城市天际线与一只猫的剪影' }, cap: 'City Glow' },
+  { image: { ...IMAGES.catLaptop, alt: '猫趴在笔记本电脑旁边陪着工作' }, cap: 'Coworker' },
   { placeholder: '[ 待补充 · film scan ]' },
   { placeholder: '[ 待补充 · rooftop ]' },
   { placeholder: '[ 待补充 · street ]' }

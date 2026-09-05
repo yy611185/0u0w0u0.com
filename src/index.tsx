@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { raw } from 'hono/html'
 import { renderer } from './renderer'
-import { Footer, MobileDrawer, Nav, SearchModal } from './components/layout'
+import { Footer, Lightbox, MobileDrawer, Nav, SearchModal } from './components/layout'
 import { AllProjects, Explore, Hero, Lab, Photos } from './components/sections'
 import { SEARCH_INDEX, SITE } from './data'
 
@@ -31,9 +31,12 @@ app.get('/', (c) => {
 
       <Footer />
       <SearchModal />
+      <Lightbox />
 
       <script id="site-data" type="application/json">{raw(bootstrap)}</script>
-      <script src="/static/app.js" defer></script>
+      {/* type="module" is deferred by definition — no `defer` needed, and it
+          lets the browser cache each behaviour module separately. */}
+      <script type="module" src="/static/js/main.js"></script>
     </>
   )
 })

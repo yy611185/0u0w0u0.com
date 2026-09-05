@@ -1,6 +1,6 @@
 import type { FC } from 'hono/jsx'
 import { IMAGES, LAB, NOTES, NOW_ITEMS, PHOTOS, PROJECTS, STATS } from '../data'
-import { Card, Picture, SectionHead, TagList } from './shared'
+import { Arrow, Card, Picture, SectionHead, TagList } from './shared'
 
 /* ============ HERO ============ */
 export const Hero: FC = () => (
@@ -9,19 +9,17 @@ export const Hero: FC = () => (
       <div class="hero-text">
         <h1 class="hero-title"><span class="spark">OuOwOuO</span></h1>
         <p class="hero-subtitle">Yang 的数字花园</p>
-        <div class="hero-tags">
-          <span>学生</span><span class="dot" aria-hidden="true"></span>
-          <span>创作者</span><span class="dot" aria-hidden="true"></span>
-          <span>投资者</span><span class="dot" aria-hidden="true"></span>
-          <span>好奇的人</span>
-        </div>
+        {/* A list of roles, marked up as one — the dots are pure decoration. */}
+        <ul class="hero-tags">
+          <li>学生</li><li class="dot" aria-hidden="true"></li>
+          <li>创作者</li><li class="dot" aria-hidden="true"></li>
+          <li>投资者</li><li class="dot" aria-hidden="true"></li>
+          <li>好奇的人</li>
+        </ul>
         <div class="hero-actions">
-          <a href="#projects" class="btn btn-primary">开始探索 →</a>
+          <a href="#projects" class="btn btn-primary">开始探索 <Arrow /></a>
           <a href="#about" class="btn btn-ghost">关于我</a>
         </div>
-      </div>
-      <div class="hero-visual">
-        <Picture image={IMAGES.heroScene} />
       </div>
     </div>
     <div class="scroll-hint" aria-hidden="true">
@@ -55,12 +53,13 @@ const ProjectsCard: FC = () => (
   <Card id="projects">
     <div class="card-head">
       <h3 class="card-title"><span class="badge" aria-hidden="true">🎨</span>精选项目</h3>
-      <a class="card-link" href="#all-projects">查看全部 →</a>
+      <a class="card-link" href="#all-projects">查看全部 <Arrow /></a>
     </div>
     <div class="projects-row">
       {PROJECTS.map(p => (
-        <a class="p-mini" href={`#${p.id}`} aria-label={`项目：${p.title}`}>
-          <div class="p-mini-img"><Picture image={p.image} /></div>
+        <a class="p-mini" href={`#${p.id}`} aria-label={`项目：${p.title} — ${p.tagline}`}>
+          {/* Thumbnails render ~1/6 of their intrinsic width. */}
+          <div class="p-mini-img"><Picture image={p.image} alt="" sizes="(max-width: 640px) 90vw, 180px" /></div>
           <div class="p-mini-body">
             <div class="p-mini-title">{p.title}</div>
             <div class="p-mini-desc">{p.tagline}</div>
@@ -80,8 +79,9 @@ const NotesCard: FC = () => (
     </div>
     <div class="notes-list">
       {NOTES.map(n => (
-        <a class="note-item" href={`#${n.id}`}>
-          <time class="note-date">{n.date}</time>
+        /* id makes the note reachable from the search palette. */
+        <a class="note-item" href={`#${n.id}`} id={n.id}>
+          <time class="note-date" datetime={n.datetime}>{n.date}</time>
           <span class="note-title">{n.title}</span>
           <span class="note-arrow" aria-hidden="true">›</span>
         </a>
@@ -103,7 +103,7 @@ export const Explore: FC = () => (
 
       <div class="bottom-row">
         <Card id="about" class="quote-card">
-          <div class="quote-thumb"><Picture image={IMAGES.heroScene} alt="夜晚书桌" /></div>
+          <div class="quote-thumb"><Picture image={IMAGES.heroScene} alt="" sizes="120px" /></div>
           <blockquote class="quote-body">
             <span class="quote-mark" aria-hidden="true">"</span>
             <p class="quote-text">好奇头脑，<br />能建造更明亮的明天。</p>
@@ -135,7 +135,7 @@ export const Lab: FC = () => (
       <SectionHead eyebrow="The Lab" title="实验室 — 正在孵化的点子" titleId="lab-title" sub="一些尚未成型但值得动手尝试的探索：AI、自动化、金融与 Web。" />
       <div class="lab-grid">
         {LAB.map(l => (
-          <a class="card lab-card" href={`#${l.id}`} id={l.id} aria-label={`实验项目：${l.title}`}>
+          <a class="card lab-card" href={`#${l.id}`} id={l.id} aria-label={`实验项目：${l.title}（${l.badge}）`}>
             <span class={`lab-badge ${l.badge.toLowerCase()}`}>{l.badge}</span>
             <span class="lab-emoji" aria-hidden="true">{l.emoji}</span>
             <h3 class="lab-title">{l.title}</h3>
@@ -156,13 +156,18 @@ export const Photos: FC = () => (
   <section class="section" id="photos" aria-labelledby="photos-title">
     <div class="container">
       <SectionHead eyebrow="Photo Wall" title="照片 — 值得记录的瞬间" titleId="photos-title" sub="生活的碎片。城市、深夜、光线，和一只猫。" />
+      {/* The first tile spans 2×2, so it needs a much larger rendered size
+          than the rest — hence the per-tile `sizes` hint. */}
       <div class="photo-grid">
-        {PHOTOS.map(p =>
+        {PHOTOS.map((p, i) =>
           'placeholder' in p ? (
-            <figure class="photo placeholder"><span>{p.placeholder}</span></figure>
+            <figure class="photo placeholder" aria-hidden="true"><span>{p.placeholder}</span></figure>
           ) : (
             <figure class={`photo ${p.span2 ? 'span-2' : ''} ${p.row2 ? 'row-2' : ''}`.trim()}>
-              <Picture image={p.image} />
+              <Picture
+                image={p.image}
+                sizes={i === 0 ? '(max-width: 640px) 92vw, 580px' : '(max-width: 640px) 46vw, 290px'}
+              />
               <figcaption class="cap">{p.cap}</figcaption>
             </figure>
           )
@@ -179,8 +184,8 @@ export const AllProjects: FC = () => (
       <SectionHead eyebrow="All Projects" title="全部项目" titleId="ap-title" sub="在正式项目详情页上线之前，这里先集中呈现。" />
       <div class="ap-grid">
         {PROJECTS.map(p => (
-          <a class="ap-card" href={`#${p.id}`} id={p.id}>
-            <div class="p-mini-img"><Picture image={p.image} alt={p.title} /></div>
+          <a class="ap-card" href={`#${p.id}`} id={p.id} aria-label={`项目：${p.title} — ${p.desc}`}>
+            <div class="p-mini-img"><Picture image={p.image} alt="" sizes="(max-width: 640px) 92vw, (max-width: 1024px) 46vw, 380px" /></div>
             <div class="p-mini-body">
               <div class="p-mini-title">{p.title}</div>
               <div class="p-mini-desc">{p.desc}</div>
