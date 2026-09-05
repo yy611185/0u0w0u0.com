@@ -8,11 +8,12 @@
 import {
   $,
   $$,
+  activateOverlay,
+  isTopOverlay,
   lockScroll,
   unlockScroll,
   rafThrottle,
   scrollToTarget,
-  setBackgroundInert,
   trapFocus
 } from './core.js'
 
@@ -62,7 +63,7 @@ function initActiveLink() {
       }
     })
     links.forEach(l => l.removeAttribute('aria-current'))
-    if (best) byTarget.get(best).forEach(l => l.setAttribute('aria-current', 'true'))
+    if (best) byTarget.get(best).forEach(l => l.setAttribute('aria-current', 'location'))
   }
 
   const io = new IntersectionObserver(
@@ -91,6 +92,7 @@ function initDrawer() {
   $$('li', menu).forEach((li, i) => li.style.setProperty('--i', String(i)))
 
   let releaseTrap = null
+  let releaseOverlay = null
   const isOpen = () => toggle.getAttribute('aria-expanded') === 'true'
 
   function setOpen(state) {
@@ -100,17 +102,25 @@ function initDrawer() {
     toggle.setAttribute('aria-label', state ? '关闭菜单' : '打开菜单')
     menu.setAttribute('data-open', state ? 'true' : 'false')
     menu.setAttribute('aria-modal', state ? 'true' : 'false')
+    menu.setAttribute('aria-hidden', state ? 'false' : 'true')
     backdrop.setAttribute('data-open', state ? 'true' : 'false')
 
     if (state) {
+      menu.removeAttribute('inert')
+      backdrop.removeAttribute('inert')
       lockScroll()
-      setBackgroundInert(true, menu, backdrop, $('#site-nav'))
+      releaseOverlay = activateOverlay(menu, backdrop, $('#site-nav'))
       releaseTrap = trapFocus(menu)
       const first = $('a', menu)
       if (first) requestAnimationFrame(() => first.focus())
     } else {
+      menu.setAttribute('inert', '')
+      backdrop.setAttribute('inert', '')
+      if (releaseOverlay) {
+        releaseOverlay()
+        releaseOverlay = null
+      }
       unlockScroll()
-      setBackgroundInert(false)
       if (releaseTrap) {
         releaseTrap()
         releaseTrap = null
@@ -125,8 +135,9 @@ function initDrawer() {
   $$('a', menu).forEach(a => a.addEventListener('click', () => setOpen(false)))
 
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && isOpen()) {
+    if (e.key === 'Escape' && isOpen() && isTopOverlay(menu)) {
       e.preventDefault()
+      e.stopImmediatePropagation()
       setOpen(false)
       toggle.focus()
     }

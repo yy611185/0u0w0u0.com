@@ -1,6 +1,20 @@
 // Central content config — all copy comes from the design handoff (final Chinese copy).
 
-export const SITE = {
+export type SocialLinks = {
+  github?: string
+  x?: string
+  email?: string
+}
+
+type SiteConfig = {
+  name: string
+  title: string
+  description: string
+  url: string
+  social: SocialLinks
+}
+
+export const SITE: SiteConfig = {
   name: 'OuOwOuO',
   title: 'OuOwOuO — Yang 的数字花园',
   description: 'OuOwOuO — Yang 的数字花园，记录学习、创造、项目与生活。',

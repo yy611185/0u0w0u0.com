@@ -101,16 +101,48 @@ export function trapFocus(container) {
   return () => container.removeEventListener('keydown', onKeydown)
 }
 
-/**
- * Hide the rest of the page from assistive tech while an overlay is open,
- * so a screen reader can't wander out of the dialog.
- */
-export function setBackgroundInert(on, ...exclude) {
+/* ---------------------------------------------------------------
+   Overlay stacking and background inertness
+   The newest open overlay owns the accessible surface. Closing a
+   nested or underlying overlay recomputes inertness from the remaining
+   stack instead of exposing the page behind another open dialog.
+   --------------------------------------------------------------- */
+const overlayLayers = []
+
+function syncBackgroundInert() {
+  const top = overlayLayers[overlayLayers.length - 1]
   Array.from(document.body.children).forEach(el => {
-    if (exclude.includes(el) || el.tagName === 'SCRIPT') return
-    if (on) el.setAttribute('inert', '')
-    else el.removeAttribute('inert')
+    if (el.tagName === 'SCRIPT') return
+    if (top && top.allowed.includes(el)) {
+      el.removeAttribute('inert')
+    } else if (top || el.getAttribute('aria-hidden') === 'true') {
+      el.setAttribute('inert', '')
+    } else {
+      el.removeAttribute('inert')
+    }
   })
+}
+
+export function activateOverlay(container, ...alsoAllowed) {
+  const layer = {
+    container,
+    allowed: [container, ...alsoAllowed].filter(Boolean)
+  }
+  overlayLayers.push(layer)
+  syncBackgroundInert()
+
+  let active = true
+  return () => {
+    if (!active) return
+    active = false
+    const index = overlayLayers.indexOf(layer)
+    if (index >= 0) overlayLayers.splice(index, 1)
+    syncBackgroundInert()
+  }
+}
+
+export function isTopOverlay(container) {
+  return overlayLayers[overlayLayers.length - 1]?.container === container
 }
 
 /** Scroll to a hash target, honouring the fixed nav offset & motion pref. */

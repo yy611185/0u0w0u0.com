@@ -13,7 +13,7 @@
 ## 已完成功能
 - 单页锚点式站点：Hero / Explore(含 Now · Projects · Notes · About · Stats) / The Lab / Photo Wall / All Projects / Contact(Footer)
 - 固定顶部胶囊导航（玻璃拟态）+ 滚动加深状态 + **当前 section 高亮**（`aria-current`）
-- 移动端汉堡菜单 + Drawer（ESC / 遮罩 / 点击链接关闭，焦点锁定 + 背景 `inert`）
+- 移动端汉堡菜单 + Drawer（ESC / 遮罩 / 点击链接关闭，焦点锁定 + 可叠层背景 `inert`）
 - `⌘/Ctrl + K`（或 `/`）全站搜索（↑↓/Home/End 选择、Enter 打开、Esc 关闭，combobox + `aria-activedescendant`）
 - **照片 Lightbox**：点击放大、←/→ 翻页、Esc 关闭、焦点锁定与归还
 - 响应式断点：1024 / 820 / 640 / 380px + 横屏手机；`prefers-reduced-motion` 全量支持
@@ -65,7 +65,7 @@ CSS 使用 `image-set(… type('image/webp'), … type('image/jpeg'))` 自动选
 ## 数据架构
 - **内容源**：`src/data.ts` — 站点配置（社交链接）、导航、项目、笔记、Lab、Now、统计、照片、搜索索引。纯静态，无数据库。
 - **渲染**：`src/renderer.tsx`（`<head>` / SEO / 字体）→ `src/index.tsx`（路由）→ `src/components/*`（Nav、Drawer、Footer、SearchModal、各 Section）。
-- **前端状态**：每个行为模块自己持有状态（drawer / search / lightbox 各自局部）；数据通过页面内 `<script type="application/json" id="site-data">` 注入。滚动锁用计数器共享，避免多弹层互相解锁。
+- **前端状态**：drawer / search / lightbox 保持局部状态，并共享 Overlay 层级、背景 `inert` 与滚动锁计数器，避免嵌套弹层提前暴露或解锁页面。
 
 ## 项目结构
 ```
@@ -98,19 +98,19 @@ webapp/
 ## 使用指南
 - 顶部导航或 Drawer 点击锚点平滑滚动到对应 section。
 - 按 `⌘K` / `Ctrl+K` 或点击 🔍 打开搜索，输入关键词（如「AI」「笔记」）后用方向键 + Enter 跳转。
-- 修改内容：编辑 `src/data.ts`；替换真实社交链接在 `SITE.social`。
+- 修改内容：编辑 `src/data.ts`；社交链接在 `SITE.social` 中按需配置，未配置项不会渲染。
 
 ## 可访问性
 - 语义标签：`<ul>` 列表化的 hero 标签 / 项目 tag / 社交链接；`<time datetime>`；`<figure>/<figcaption>`
-- 键盘：Drawer / 搜索 / Lightbox 均支持 Tab 锁定、Esc 关闭、焦点归还；背景上 `inert`
+- 键盘：Drawer / 搜索 / Lightbox 均支持 Tab 锁定、顶层 Esc 关闭、焦点归还；隐藏层和背景正确使用 `aria-hidden` / `inert`
 - 焦点：全站统一 `focus-visible` 描边；hover 效果均有 `:focus-visible` 对应态
-- 装饰图 `alt=""`，内容图均有描述性 alt；占位卡 `aria-hidden`
+- 装饰图 `alt=""`，内容图均有描述性 alt；照片数据占位默认不进入正式页面
 - 所有 hover 样式包在 `@media (hover: hover) and (pointer: fine)`，触屏不会“粘住” hover 态
 
 ## 待办 / 未实现
-- 项目 / 笔记 / Lab 详情页（当前为锚点回落，建议 `/projects/[slug]` 等路由）
-- Photo Wall 后 3 张仍为占位（需补真实照片）
-- `SITE.social` 三个链接仍为占位（GitHub / X / Email）
+- 项目 / 笔记 / Lab 详情页（当前卡片为非链接展示，搜索仍可定位到对应卡片）
+- Photo Wall 后 3 个未来位置仍保留在数据层，正式页面不渲染
+- X 暂未配置；`SITE.social` 未配置字段会自动省略
 - 字体仍走 Google Fonts CDN（可进一步自托 woff2 + subset）
 - Analytics 接入
 - 生产部署

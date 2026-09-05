@@ -31,8 +31,8 @@ export const Nav: FC = () => (
 
 export const MobileDrawer: FC = () => (
   <>
-    <div class="menu-backdrop" data-menu-backdrop aria-hidden="true"></div>
-    <div class="mobile-menu" id="mobile-menu" role="dialog" aria-modal="false" aria-label="移动端导航">
+    <div class="menu-backdrop" data-menu-backdrop aria-hidden="true" inert></div>
+    <div class="mobile-menu" id="mobile-menu" role="dialog" aria-modal="false" aria-label="移动端导航" aria-hidden="true" inert>
       <ul>
         {NAV_LINKS.map(l => (
           <li><a href={l.href}>{l.label}<span class="arrow" aria-hidden="true">→</span></a></li>
@@ -73,19 +73,20 @@ export const Footer: FC = () => (
           <strong>OuOwOuO.com</strong>
           <span>© 2026 OuOwOuO。保持好奇，继续前行。</span>
         </div>
-        {/* data-social lets app JS swap in the real handles without a rebuild. */}
-        <ul class="footer-social">
-          <li><a class="social-btn" href={SITE.social.github} data-social="github" aria-label="GitHub（新窗口打开）" rel="me noopener noreferrer" target="_blank"><GithubIcon /></a></li>
-          <li><a class="social-btn" href={SITE.social.email} data-social="email" aria-label="发送邮件"><MailIcon /></a></li>
-        </ul>
+        {(SITE.social.github || SITE.social.email) && (
+          <ul class="footer-social">
+            {SITE.social.github && <li><a class="social-btn" href={SITE.social.github} data-social="github" aria-label="GitHub（新窗口打开）" rel="me noopener noreferrer" target="_blank"><GithubIcon /></a></li>}
+            {SITE.social.email && <li><a class="social-btn" href={SITE.social.email} data-social="email" aria-label="发送邮件"><MailIcon /></a></li>}
+          </ul>
+        )}
       </div>
     </div>
   </footer>
 )
 
 export const SearchModal: FC = () => (
-  <div class="search-modal" id="search-modal" role="dialog" aria-modal="true" aria-label="站内搜索">
-    <div class="backdrop" data-search-close></div>
+  <div class="search-modal" id="search-modal" role="dialog" aria-modal="true" aria-label="站内搜索" aria-hidden="true" inert>
+    <div class="backdrop" data-search-close aria-hidden="true"></div>
     <div class="search-panel">
       {/* Combobox pattern: the input keeps focus and points at the highlighted
           option through aria-activedescendant, which search.js maintains. */}
@@ -99,11 +100,11 @@ export const SearchModal: FC = () => (
           aria-label="搜索项目、笔记与实验"
           autocomplete="off"
           role="combobox"
-          aria-expanded="true"
+          aria-expanded="false"
           aria-controls="search-results"
           aria-autocomplete="list"
         />
-        <span class="search-close" aria-hidden="true">ESC</span>
+        <button type="button" class="search-close" data-search-close aria-label="关闭搜索">ESC</button>
       </div>
       <div class="search-results" id="search-results" role="listbox" aria-label="搜索结果"></div>
       <div class="search-foot">
@@ -123,7 +124,7 @@ const CloseIcon = () => (
  * whichever tile was activated, so no photo markup is duplicated here.
  */
 export const Lightbox: FC = () => (
-  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="照片查看器" aria-hidden="true">
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="照片查看器" aria-hidden="true" inert>
     <div class="backdrop" data-lightbox-close aria-hidden="true"></div>
 
     <button type="button" class="lb-close" data-lightbox-close aria-label="关闭查看器 (Esc)"><CloseIcon /></button>
@@ -135,7 +136,7 @@ export const Lightbox: FC = () => (
     </button>
 
     <figure class="lightbox-figure">
-      <img id="lightbox-img" src="" alt="" decoding="async" />
+      <img id="lightbox-img" alt="" decoding="async" />
       <figcaption>
         <span id="lightbox-cap"></span>
         <span class="count" id="lightbox-count"></span>

@@ -6,11 +6,12 @@
 import {
   $,
   $$,
+  activateOverlay,
   DATA,
+  isTopOverlay,
   lockScroll,
   unlockScroll,
   scrollToTarget,
-  setBackgroundInert,
   trapFocus
 } from './core.js'
 
@@ -28,6 +29,7 @@ export function initSearch() {
   let rows = [] // flat list of { el, href } in render order
   let focusIdx = 0
   let releaseTrap = null
+  let releaseOverlay = null
   let lastFocused = null
 
   const isOpen = () => modal.getAttribute('data-open') === 'true'
@@ -130,22 +132,31 @@ export function initSearch() {
 
     if (state) {
       lastFocused = document.activeElement
+      modal.setAttribute('aria-hidden', 'false')
+      modal.removeAttribute('inert')
+      input.setAttribute('aria-expanded', 'true')
       lockScroll()
-      setBackgroundInert(true, modal)
+      releaseOverlay = activateOverlay(modal)
       releaseTrap = trapFocus(modal)
       input.value = ''
       render('')
       requestAnimationFrame(() => input.focus())
     } else {
+      modal.setAttribute('aria-hidden', 'true')
+      modal.setAttribute('inert', '')
+      input.setAttribute('aria-expanded', 'false')
+      if (releaseOverlay) {
+        releaseOverlay()
+        releaseOverlay = null
+      }
       unlockScroll()
-      setBackgroundInert(false)
       if (releaseTrap) {
         releaseTrap()
         releaseTrap = null
       }
       input.removeAttribute('aria-activedescendant')
       // Return focus where the user left it.
-      if (lastFocused && document.contains(lastFocused)) lastFocused.focus()
+      if (lastFocused && document.contains(lastFocused) && !lastFocused.closest('[inert]')) lastFocused.focus()
       else openBtn.focus()
     }
   }
@@ -159,7 +170,14 @@ export function initSearch() {
     if (target) {
       history.replaceState(null, '', href)
       // Wait a frame for the scroll lock to lift before scrolling.
-      requestAnimationFrame(() => scrollToTarget(target))
+      requestAnimationFrame(() => {
+        scrollToTarget(target)
+        if (!target.hasAttribute('tabindex')) {
+          target.setAttribute('tabindex', '-1')
+          target.addEventListener('blur', () => target.removeAttribute('tabindex'), { once: true })
+        }
+        target.focus({ preventScroll: true })
+      })
     } else {
       location.hash = href
     }
@@ -197,10 +215,11 @@ export function initSearch() {
       setOpen(true)
       return
     }
-    if (!isOpen()) return
+    if (!isOpen() || !isTopOverlay(modal)) return
 
     if (e.key === 'Escape') {
       e.preventDefault()
+      e.stopImmediatePropagation()
       setOpen(false)
     } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault()

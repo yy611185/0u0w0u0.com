@@ -69,9 +69,6 @@ export const renderer = jsxRenderer(({ children }) => {
           rel="stylesheet"
         />
 
-        {/* Section backdrops are below the fold — hint them without competing
-            with the hero for bandwidth. */}
-        <link rel="preload" as="image" href="/static/assets/webp/bg-night-cat.webp" type="image/webp" media="(min-width: 769px)" fetchpriority="low" />
       </head>
       <body>{children}</body>
     </html>

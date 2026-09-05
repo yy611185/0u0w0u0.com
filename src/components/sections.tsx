@@ -80,11 +80,10 @@ const NotesCard: FC = () => (
     <div class="notes-list">
       {NOTES.map(n => (
         /* id makes the note reachable from the search palette. */
-        <a class="note-item" href={`#${n.id}`} id={n.id}>
+        <article class="note-item" id={n.id}>
           <time class="note-date" datetime={n.datetime}>{n.date}</time>
           <span class="note-title">{n.title}</span>
-          <span class="note-arrow" aria-hidden="true">›</span>
-        </a>
+        </article>
       ))}
     </div>
   </Card>
@@ -135,16 +134,15 @@ export const Lab: FC = () => (
       <SectionHead eyebrow="The Lab" title="实验室 — 正在孵化的点子" titleId="lab-title" sub="一些尚未成型但值得动手尝试的探索：AI、自动化、金融与 Web。" />
       <div class="lab-grid">
         {LAB.map(l => (
-          <a class="card lab-card" href={`#${l.id}`} id={l.id} aria-label={`实验项目：${l.title}（${l.badge}）`}>
+          <article class="card lab-card" id={l.id}>
             <span class={`lab-badge ${l.badge.toLowerCase()}`}>{l.badge}</span>
             <span class="lab-emoji" aria-hidden="true">{l.emoji}</span>
             <h3 class="lab-title">{l.title}</h3>
             <p class="lab-desc">{l.desc}</p>
             <div class="lab-foot">
               <span>{l.stack}</span>
-              <span class="arrow" aria-hidden="true">→</span>
             </div>
-          </a>
+          </article>
         ))}
       </div>
     </div>
@@ -160,9 +158,7 @@ export const Photos: FC = () => (
           than the rest — hence the per-tile `sizes` hint. */}
       <div class="photo-grid">
         {PHOTOS.map((p, i) =>
-          'placeholder' in p ? (
-            <figure class="photo placeholder" aria-hidden="true"><span>{p.placeholder}</span></figure>
-          ) : (
+          'placeholder' in p ? null : (
             <figure class={`photo ${p.span2 ? 'span-2' : ''} ${p.row2 ? 'row-2' : ''}`.trim()}>
               <Picture
                 image={p.image}
@@ -184,14 +180,14 @@ export const AllProjects: FC = () => (
       <SectionHead eyebrow="All Projects" title="全部项目" titleId="ap-title" sub="在正式项目详情页上线之前，这里先集中呈现。" />
       <div class="ap-grid">
         {PROJECTS.map(p => (
-          <a class="ap-card" href={`#${p.id}`} id={p.id} aria-label={`项目：${p.title} — ${p.desc}`}>
+          <article class="ap-card" id={p.id}>
             <div class="p-mini-img"><Picture image={p.image} alt="" sizes="(max-width: 640px) 92vw, (max-width: 1024px) 46vw, 380px" /></div>
             <div class="p-mini-body">
               <div class="p-mini-title">{p.title}</div>
               <div class="p-mini-desc">{p.desc}</div>
               <TagList tags={p.tags} />
             </div>
-          </a>
+          </article>
         ))}
       </div>
     </div>

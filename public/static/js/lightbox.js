@@ -8,9 +8,10 @@
 import {
   $,
   $$,
+  activateOverlay,
+  isTopOverlay,
   lockScroll,
   unlockScroll,
-  setBackgroundInert,
   trapFocus
 } from './core.js'
 
@@ -27,7 +28,7 @@ export function initLightbox() {
   if (!imgEl) return
 
   // Collect the real (non-placeholder) photos in DOM order.
-  const photos = $$('.photo:not(.placeholder)')
+  const photos = $$('.photo')
     .map(fig => {
       const img = $('img', fig)
       if (!img) return null
@@ -56,6 +57,7 @@ export function initLightbox() {
 
   let index = 0
   let releaseTrap = null
+  let releaseOverlay = null
   let lastFocused = null
 
   const isOpen = () => lightbox.getAttribute('data-open') === 'true'
@@ -75,21 +77,26 @@ export function initLightbox() {
       lastFocused = document.activeElement
       show(startIndex)
       lightbox.setAttribute('data-open', 'true')
-      lightbox.removeAttribute('aria-hidden')
+      lightbox.setAttribute('aria-hidden', 'false')
+      lightbox.removeAttribute('inert')
       lockScroll()
-      setBackgroundInert(true, lightbox)
+      releaseOverlay = activateOverlay(lightbox)
       releaseTrap = trapFocus(lightbox)
       requestAnimationFrame(() => (closeBtn || lightbox).focus())
     } else {
       lightbox.setAttribute('data-open', 'false')
       lightbox.setAttribute('aria-hidden', 'true')
       unlockScroll()
-      setBackgroundInert(false)
+      lightbox.setAttribute('inert', '')
+      if (releaseOverlay) {
+        releaseOverlay()
+        releaseOverlay = null
+      }
       if (releaseTrap) {
         releaseTrap()
         releaseTrap = null
       }
-      if (lastFocused && document.contains(lastFocused)) lastFocused.focus()
+      if (lastFocused && document.contains(lastFocused) && !lastFocused.closest('[inert]')) lastFocused.focus()
     }
   }
 
@@ -120,9 +127,10 @@ export function initLightbox() {
   if (nextBtn) nextBtn.addEventListener('click', () => show(index + 1))
 
   document.addEventListener('keydown', e => {
-    if (!isOpen()) return
+    if (!isOpen() || !isTopOverlay(lightbox)) return
     if (e.key === 'Escape') {
       e.preventDefault()
+      e.stopImmediatePropagation()
       setOpen(false)
     } else if (many && e.key === 'ArrowRight') {
       e.preventDefault()
