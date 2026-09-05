@@ -4,11 +4,10 @@ export const SITE = {
   name: 'OuOwOuO',
   title: 'OuOwOuO — Yang 的数字花园',
   description: 'OuOwOuO — Yang 的数字花园，记录学习、创造、项目与生活。',
-  url: 'https://ouowouo.com/',
+  url: 'https://0u0w0u0.com/',
   social: {
-    github: 'https://github.com/',        // TODO: 替换为真实账号
-    x: 'https://x.com/',                  // TODO: 替换为真实账号
-    email: 'mailto:hello@ouowouo.com'     // TODO: 替换为真实邮箱
+    github: 'https://github.com/yy611185',
+    email: 'mailto:yy050202@outlook.com'
   }
 }
 
@@ -104,9 +103,9 @@ export const NOW_ITEMS = [
 ]
 
 export const STATS = [
-  { kind: 'a', emoji: '🌱', num: '12', label: '项目', sub: '做过的作品' },
-  { kind: 'b', emoji: '📄', num: '86', label: '笔记', sub: '想法与写作' },
-  { kind: 'c', emoji: '🧪', num: '7', label: '实验', sub: '进行中的点子' },
+  { kind: 'a', emoji: '🌱', num: '3', label: '项目', sub: '做过的作品' },
+  { kind: 'b', emoji: '📄', num: '5', label: '笔记', sub: '想法与写作' },
+  { kind: 'c', emoji: '🧪', num: '3', label: '实验', sub: '进行中的点子' },
   { kind: 'd', emoji: '📷', num: '∞', label: '照片', sub: '值得记录的瞬间' }
 ]
 

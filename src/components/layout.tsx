@@ -49,9 +49,6 @@ export const MobileDrawer: FC = () => (
 const GithubIcon = () => (
   <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" /></svg>
 )
-const XIcon = () => (
-  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" /></svg>
-)
 const MailIcon = () => (
   <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>
 )
@@ -79,7 +76,6 @@ export const Footer: FC = () => (
         {/* data-social lets app JS swap in the real handles without a rebuild. */}
         <ul class="footer-social">
           <li><a class="social-btn" href={SITE.social.github} data-social="github" aria-label="GitHub（新窗口打开）" rel="me noopener noreferrer" target="_blank"><GithubIcon /></a></li>
-          <li><a class="social-btn" href={SITE.social.x} data-social="x" aria-label="X / Twitter（新窗口打开）" rel="me noopener noreferrer" target="_blank"><XIcon /></a></li>
           <li><a class="social-btn" href={SITE.social.email} data-social="email" aria-label="发送邮件"><MailIcon /></a></li>
         </ul>
       </div>
