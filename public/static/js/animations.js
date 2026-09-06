@@ -137,6 +137,11 @@ function initAnimationCleanup() {
  * Hero micro-parallax: the background drifts up to 10px against the scroll
  * and the text fades slightly as it leaves. Purely compositor work, and the
  * scroll listener is rAF-throttled + passive.
+ *
+ * On narrow phones the 16:9 hero artwork needs different framing: `cover`
+ * crops too aggressively in portrait. Keep the image slightly smaller, shift
+ * the focal point toward the cat/window, and leave the photographic layer
+ * anchored instead of letting desktop parallax overwrite that framing.
  */
 function initHeroParallax() {
   const hero = $('.hero')
@@ -145,13 +150,20 @@ function initHeroParallax() {
   if (!hero) return undefined
 
   const MAX_SHIFT = 10
+  const mobileHero = window.matchMedia('(max-width: 640px)')
 
   const update = () => {
     const y = window.scrollY
     const h = hero.offsetHeight || 1
     const progress = Math.min(1, Math.max(0, y / h))
 
-    hero.style.backgroundPosition = `center calc(50% + ${(progress * MAX_SHIFT).toFixed(2)}px)`
+    if (mobileHero.matches) {
+      hero.style.backgroundPosition = 'center, 70% top'
+      hero.style.backgroundSize = 'auto, auto 86%'
+    } else {
+      hero.style.backgroundSize = ''
+      hero.style.backgroundPosition = `center calc(50% + ${(progress * MAX_SHIFT).toFixed(2)}px)`
+    }
 
     if (heroText) {
       heroText.style.transform = `translate3d(0, ${(progress * MAX_SHIFT * 1.6).toFixed(2)}px, 0)`
@@ -167,6 +179,7 @@ function initHeroParallax() {
   return () => {
     window.removeEventListener('scroll', onScroll)
     hero.style.backgroundPosition = ''
+    hero.style.backgroundSize = ''
     if (heroText) {
       heroText.style.transform = ''
       heroText.style.opacity = ''
