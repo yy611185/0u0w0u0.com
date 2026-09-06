@@ -67,17 +67,14 @@ app.use('*', async (c, next) => {
 })
 app.use('*', renderer)
 
-const bootstrap = JSON.stringify({ social: SITE.social, index: SEARCH_INDEX }).replace(
-  /</g,
-  '\\u003c'
-)
 const shell = (children: Child, lightbox = false) => (
-  <SiteShell searchData={bootstrap} lightbox={lightbox}>
-    {children}
-  </SiteShell>
+  <SiteShell lightbox={lightbox}>{children}</SiteShell>
 )
 
-app.get('/api/search-index', (c) => c.json(SEARCH_INDEX))
+app.get('/api/search-index', (c) => {
+  c.header('Cache-Control', 'public, max-age=300, must-revalidate')
+  return c.json(SEARCH_INDEX)
+})
 app.get('/sitemap.xml', (c) =>
   c.body(buildSitemap(getAllNotes(), getAllProjects(), getAllLabItems()), 200, {
     'Content-Type': 'application/xml; charset=UTF-8',
