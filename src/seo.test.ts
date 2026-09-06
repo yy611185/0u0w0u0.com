@@ -35,6 +35,18 @@ describe('SEO helpers', () => {
     )
   })
 
+  it('uses default social image dimensions and accepts exact asset dimensions', () => {
+    const defaults = resolvePageMeta({}, '/')
+    expect([defaults.imageWidth, defaults.imageHeight]).toEqual([1200, 630])
+
+    const project = resolvePageMeta(
+      { image: '/static/assets/project-hermes.jpg', imageWidth: 1024, imageHeight: 768 },
+      '/projects/hermes'
+    )
+    expect(project.image).toBe('https://0u0w0u0.com/static/assets/project-hermes.jpg')
+    expect([project.imageWidth, project.imageHeight]).toEqual([1024, 768])
+  })
+
   it('generates a sitemap without draft URLs', () => {
     const sitemap = buildSitemap([note(), note(true)], [], [])
 
