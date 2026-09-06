@@ -36,7 +36,14 @@ export const NAV_LINKS = [
 ]
 
 /** Intrinsic dimensions are carried so every <img> can reserve layout space (CLS = 0). */
-export type ImageAsset = { webp: string; fallback: string; alt: string; w: number; h: number }
+export type ImageAsset = {
+  webp: string
+  webpSrcset?: string
+  fallback: string
+  alt: string
+  w: number
+  h: number
+}
 
 const asset = (
   name: string,
@@ -56,7 +63,11 @@ export const IMAGES = {
   heroScene: asset('hero-scene', 'jpg', '夜晚书桌场景', 1024, 576),
   catSleep: asset('cat-sleep', 'png', '午睡的猫', 1024, 768),
   catLaptop: asset('cat-laptop', 'png', '趴在笔电旁的猫', 819, 1024),
-  nightCat: asset('bg-night-cat', 'jpg', '城市夜景与猫', 1500, 843),
+  nightCat: {
+    ...asset('bg-night-cat', 'jpg', '城市夜景与猫', 1500, 843),
+    webpSrcset:
+      '/static/assets/webp/bg-night-cat-900.webp 900w, /static/assets/webp/bg-night-cat.webp 1500w'
+  },
   projectYangfolio: asset('project-yangfolio', 'jpg', 'Yangfolio 项目预览', 1024, 768),
   projectBlood: asset('project-blood', 'jpg', 'Blood Pressure Record 项目预览', 1024, 768),
   projectHermes: asset('project-hermes', 'jpg', 'Hermes 项目预览', 1024, 768)
