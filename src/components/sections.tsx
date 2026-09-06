@@ -6,6 +6,9 @@ import { Arrow, Card, Picture, SectionHead, TagList } from './shared'
 const PROJECTS = getAllProjects()
 const NOTES = getAllNotes()
 const LAB = getAllLabItems()
+const FEATURED_PROJECTS = PROJECTS.filter((project) => project.featured).slice(0, 3)
+const LATEST_NOTES = NOTES.slice(0, 4)
+const HOME_LAB = LAB.slice(0, 3)
 
 const STATS = [
   { kind: 'a', emoji: '🌱', num: String(PROJECTS.length), label: '项目', sub: '做过的作品' },
@@ -102,7 +105,7 @@ const ProjectsCard: FC = () => (
       </a>
     </div>
     <div class="projects-row">
-      {PROJECTS.map((p) => (
+      {FEATURED_PROJECTS.map((p) => (
         <a
           class="p-mini"
           href={`/projects/${p.slug}`}
@@ -138,7 +141,7 @@ const NotesCard: FC = () => (
       </a>
     </div>
     <div class="notes-list">
-      {NOTES.map((n) => (
+      {LATEST_NOTES.map((n) => (
         <a class="note-item" href={`/notes/${n.slug}`}>
           <time class="note-date" datetime={n.date}>
             {n.date.slice(5).replace('-', '.')}
@@ -216,7 +219,7 @@ export const Lab: FC = () => (
         sub="一些尚未成型但值得动手尝试的探索：AI、自动化、金融与 Web。"
       />
       <div class="lab-grid">
-        {LAB.map((l) => (
+        {HOME_LAB.map((l) => (
           <a class="card lab-card" href={`/lab/${l.slug}`}>
             <span class={`lab-badge ${l.status.toLowerCase()}`}>{l.status}</span>
             {l.draft && <span class="draft-badge">DRAFT</span>}
@@ -273,7 +276,7 @@ export const AllProjects: FC = () => (
         sub="每个项目都有独立的过程记录、当前状态与一路学到的事。"
       />
       <div class="ap-grid">
-        {PROJECTS.map((p) => (
+        {FEATURED_PROJECTS.map((p) => (
           <a class="ap-card" href={`/projects/${p.slug}`}>
             <div class="p-mini-img">
               <Picture
