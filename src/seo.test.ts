@@ -29,16 +29,16 @@ draft: ${String(draft)}
 describe('SEO helpers', () => {
   it('normalizes canonical paths and produces production URLs', () => {
     expect(canonicalPath('/notes/example/?from=test')).toBe('/notes/example')
-    expect(absoluteUrl('/notes/example/')).toBe('https://ouowouo.com/notes/example')
+    expect(absoluteUrl('/notes/example/')).toBe('https://0u0w0u0.com/notes/example')
     expect(resolvePageMeta({ title: '笔记' }, '/notes/').canonical).toBe(
-      'https://ouowouo.com/notes'
+      'https://0u0w0u0.com/notes'
     )
   })
 
   it('generates a sitemap without draft URLs', () => {
     const sitemap = buildSitemap([note(), note(true)], [], [])
 
-    expect(sitemap).toContain('https://ouowouo.com/notes/published-note')
+    expect(sitemap).toContain('https://0u0w0u0.com/notes/published-note')
     expect(sitemap).not.toContain('draft-note')
     expect(sitemap).toContain('<lastmod>2026-09-03</lastmod>')
   })
@@ -47,14 +47,14 @@ describe('SEO helpers', () => {
     const rss = buildRss([note(), note(true)])
 
     expect(rss).toContain('<title>A &amp; B</title>')
-    expect(rss).toContain('https://ouowouo.com/notes/published-note')
+    expect(rss).toContain('https://0u0w0u0.com/notes/published-note')
     expect(rss).not.toContain('draft-note')
     expect(rss).toContain('<pubDate>Tue, 01 Sep 2026 00:00:00 GMT</pubDate>')
   })
 
   it('publishes an unrestricted robots policy with the sitemap location', () => {
     expect(buildRobots()).toBe(
-      'User-agent: *\nAllow: /\n\nSitemap: https://ouowouo.com/sitemap.xml\n'
+      'User-agent: *\nAllow: /\n\nSitemap: https://0u0w0u0.com/sitemap.xml\n'
     )
   })
 })
