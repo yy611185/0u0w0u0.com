@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildCollection, parseNote } from './shared'
+import { buildCollection, parseNote, parseProject } from './shared'
 
 function noteSource(overrides: { slug?: string; draft?: boolean; body?: string } = {}): string {
   return `---
@@ -29,6 +29,43 @@ describe('content parsing', () => {
   it('rejects malformed frontmatter and unsafe slugs', () => {
     expect(() => parseNote('没有 frontmatter', 'broken.md')).toThrow('invalid frontmatter')
     expect(() => parseNote(noteSource({ slug: 'Not Safe' }), 'slug.md')).toThrow('not URL safe')
+  })
+
+  it('rejects invalid dates, reverse update ranges, and unknown fields', () => {
+    expect(() =>
+      parseNote(noteSource().replace('date: 2026-09-01', 'date: 2026-02-30'), 'date.md')
+    ).toThrow('real dates')
+    expect(() =>
+      parseNote(noteSource().replace('updated: 2026-09-02', 'updated: 2026-08-31'), 'updated.md')
+    ).toThrow('must not be earlier')
+    expect(() =>
+      parseNote(noteSource().replace('draft: false', 'draft: false\nunexpected: value'), 'field.md')
+    ).toThrow('unsupported frontmatter field')
+  })
+
+  it('requires project links to use http(s)', () => {
+    const source = `---
+title: Project
+slug: project
+ date: 2026-09-01
+updated: 2026-09-02
+description: Project description
+tagline: Project tagline
+cover: cover
+tags:
+  - Web
+status: active
+repository: javascript:alert(1)
+demo: ''
+stack:
+  - TypeScript
+featured: true
+draft: false
+---
+正文`.replace('\n date:', '\ndate:')
+    const cover = { webp: '/cover.webp', fallback: '/cover.jpg', alt: 'cover', w: 1, h: 1 }
+
+    expect(() => parseProject(source, 'project.md', { cover })).toThrow('valid http(s) URL')
   })
 
   it('rejects duplicate slugs', () => {
