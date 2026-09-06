@@ -14,7 +14,7 @@ import { initInteraction } from './interaction.js'
 
 /** Social hrefs come from the server config so markup stays content-free. */
 function initSocialLinks() {
-  $$('[data-social]').forEach(a => {
+  $$('[data-social]').forEach((a) => {
     const key = a.getAttribute('data-social')
     const href = DATA.social && DATA.social[key]
     if (href) a.setAttribute('href', href)
@@ -34,7 +34,7 @@ function boot() {
   initInteraction()
 
   // Honour a mid-session switch to "reduce motion": show everything at rest.
-  onReducedMotionChange(e => {
+  onReducedMotionChange((e) => {
     if (e.matches) settleAll()
   })
 }

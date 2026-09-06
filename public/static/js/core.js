@@ -25,8 +25,7 @@ export function onReducedMotionChange(fn) {
 }
 
 /** True on devices with a real hovering pointer (excludes touch). */
-export const hasFinePointer = () =>
-  window.matchMedia('(hover: hover) and (pointer: fine)').matches
+export const hasFinePointer = () => window.matchMedia('(hover: hover) and (pointer: fine)').matches
 
 export const $ = (sel, root = document) => root.querySelector(sel)
 export const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel))
@@ -81,10 +80,10 @@ const FOCUSABLE = [
  * Returns a teardown function.
  */
 export function trapFocus(container) {
-  const onKeydown = e => {
+  const onKeydown = (e) => {
     if (e.key !== 'Tab') return
     const items = $$(FOCUSABLE, container).filter(
-      el => el.offsetParent !== null || el === document.activeElement
+      (el) => el.offsetParent !== null || el === document.activeElement
     )
     if (!items.length) return
     const first = items[0]
@@ -111,7 +110,7 @@ const overlayLayers = []
 
 function syncBackgroundInert() {
   const top = overlayLayers[overlayLayers.length - 1]
-  Array.from(document.body.children).forEach(el => {
+  Array.from(document.body.children).forEach((el) => {
     if (el.tagName === 'SCRIPT') return
     if (top && top.allowed.includes(el)) {
       el.removeAttribute('inert')

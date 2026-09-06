@@ -22,7 +22,8 @@ export function initSearch() {
   const modal = $('#search-modal')
   const input = $('#search-input')
   const results = $('#search-results')
-  const openBtn = $('[data-search-open]')
+  const openBtns = $$('[data-search-open]')
+  const openBtn = openBtns[0]
   if (!modal || !input || !results || !openBtn) return
 
   const INDEX = Array.isArray(DATA.index) ? DATA.index : []
@@ -36,7 +37,8 @@ export function initSearch() {
 
   function matches(query, item) {
     if (!query) return true
-    const haystack = `${item.title} ${item.desc} ${KIND_LABEL[item.kind] || ''}`.toLowerCase()
+    const haystack =
+      `${item.title} ${item.desc} ${(item.tags || []).join(' ')} ${KIND_LABEL[item.kind] || ''}`.toLowerCase()
     return haystack.includes(query.toLowerCase())
   }
 
@@ -71,7 +73,7 @@ export function initSearch() {
   }
 
   function render(query) {
-    const list = INDEX.filter(i => matches(query, i))
+    const list = INDEX.filter((i) => matches(query, i))
     results.textContent = ''
     rows = []
     focusIdx = 0
@@ -86,13 +88,13 @@ export function initSearch() {
     }
 
     const groups = new Map()
-    list.forEach(i => {
+    list.forEach((i) => {
       if (!groups.has(i.kind)) groups.set(i.kind, [])
       groups.get(i.kind).push(i)
     })
 
     const frag = document.createDocumentFragment()
-    ORDER.forEach(kind => {
+    ORDER.forEach((kind) => {
       const items = groups.get(kind)
       if (!items) return
       const heading = document.createElement('div')
@@ -100,7 +102,7 @@ export function initSearch() {
       heading.setAttribute('role', 'presentation')
       heading.textContent = KIND_LABEL[kind]
       frag.append(heading)
-      items.forEach(item => {
+      items.forEach((item) => {
         const row = buildRow(item, rows.length)
         rows.push({ el: row, href: item.href })
         frag.append(row)
@@ -156,7 +158,14 @@ export function initSearch() {
       }
       input.removeAttribute('aria-activedescendant')
       // Return focus where the user left it.
-      if (lastFocused && document.contains(lastFocused) && !lastFocused.closest('[inert]')) lastFocused.focus()
+      if (
+        lastFocused instanceof HTMLElement &&
+        lastFocused !== document.body &&
+        lastFocused !== document.documentElement &&
+        document.contains(lastFocused) &&
+        !lastFocused.closest('[inert]')
+      )
+        lastFocused.focus()
       else openBtn.focus()
     }
   }
@@ -166,7 +175,7 @@ export function initSearch() {
     if (!row) return
     const href = row.href
     setOpen(false)
-    const target = document.getElementById(href.replace(/^#/, ''))
+    const target = href.startsWith('#') ? document.getElementById(href.slice(1)) : null
     if (target) {
       history.replaceState(null, '', href)
       // Wait a frame for the scroll lock to lift before scrolling.
@@ -178,32 +187,30 @@ export function initSearch() {
         }
         target.focus({ preventScroll: true })
       })
-    } else {
-      location.hash = href
-    }
+    } else location.assign(href)
   }
 
-  openBtn.addEventListener('click', () => setOpen(true))
-  $$('[data-search-close]').forEach(el => el.addEventListener('click', () => setOpen(false)))
-  input.addEventListener('input', e => render(e.target.value))
+  openBtns.forEach((button) => button.addEventListener('click', () => setOpen(true)))
+  $$('[data-search-close]').forEach((el) => el.addEventListener('click', () => setOpen(false)))
+  input.addEventListener('input', (e) => render(e.target.value))
 
-  results.addEventListener('click', e => {
+  results.addEventListener('click', (e) => {
     const row = e.target.closest('.search-item')
     if (!row) return
-    activate(rows.findIndex(r => r.el === row))
+    activate(rows.findIndex((r) => r.el === row))
   })
   // Hovering a row moves the keyboard cursor with it — no double highlight.
-  results.addEventListener('pointermove', e => {
+  results.addEventListener('pointermove', (e) => {
     const row = e.target.closest('.search-item')
     if (!row) return
-    const i = rows.findIndex(r => r.el === row)
+    const i = rows.findIndex((r) => r.el === row)
     if (i >= 0 && i !== focusIdx) {
       focusIdx = i
       updateFocus()
     }
   })
 
-  document.addEventListener('keydown', e => {
+  document.addEventListener('keydown', (e) => {
     // ⌘K / Ctrl+K toggles from anywhere.
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
       e.preventDefault()

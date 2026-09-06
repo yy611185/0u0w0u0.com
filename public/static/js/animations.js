@@ -52,11 +52,11 @@ const REVEAL_GROUPS = [
 
 /** Tag everything that should reveal on scroll, with per-item delays. */
 function primeReveals() {
-  REVEAL_GROUPS.forEach(selector => {
+  REVEAL_GROUPS.forEach((selector) => {
     const items = $$(selector)
     // Delays restart per parent so each grid staggers from its own first item.
     const seen = new Map()
-    items.forEach(el => {
+    items.forEach((el) => {
       const parent = el.parentElement
       const i = seen.get(parent) ?? 0
       seen.set(parent, i + 1)
@@ -68,7 +68,7 @@ function primeReveals() {
 
 /** Force every entrance to its resting state (reduced motion / no IO). */
 function settleAll() {
-  $$('[data-load], [data-reveal]').forEach(el => {
+  $$('[data-load], [data-reveal]').forEach((el) => {
     el.classList.add('is-visible', 'is-done')
     el.style.opacity = '1'
     el.style.transform = 'none'
@@ -86,8 +86,8 @@ function initScrollReveal() {
   }
 
   const io = new IntersectionObserver(
-    entries => {
-      entries.forEach(entry => {
+    (entries) => {
+      entries.forEach((entry) => {
         if (!entry.isIntersecting) return
         const el = entry.target
         el.classList.add('is-visible')
@@ -106,7 +106,7 @@ function initScrollReveal() {
     }
   )
 
-  targets.forEach(el => io.observe(el))
+  targets.forEach((el) => io.observe(el))
 
   /* Fail-safe. Guarantees nothing is ever permanently invisible — covers a
      restored scroll position, an element in a collapsed container, or an
@@ -115,7 +115,7 @@ function initScrollReveal() {
   let sweeps = 0
   const sweep = () => {
     const pending = $$('[data-reveal]:not(.is-visible)')
-    pending.forEach(el => {
+    pending.forEach((el) => {
       const r = el.getBoundingClientRect()
       // Anything already within (or above) the viewport must be visible.
       if (r.top < window.innerHeight && r.bottom > -1) {
@@ -133,7 +133,7 @@ function initScrollReveal() {
 function initAnimationCleanup() {
   document.addEventListener(
     'animationend',
-    e => {
+    (e) => {
       if (e.animationName === 'reveal-in') e.target.classList.add('is-done')
     },
     true

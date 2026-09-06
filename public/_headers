@@ -1,0 +1,16 @@
+/static/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), geolocation=(), microphone=(), payment=(), usb=()
+
+/static/assets/*
+  Cache-Control: public, max-age=604800, must-revalidate
+
+/static/fonts/*
+  Cache-Control: public, max-age=604800, must-revalidate
+
+/static/js/*
+  Cache-Control: public, max-age=3600, must-revalidate
+
+/static/style.css
+  Cache-Control: public, max-age=3600, must-revalidate

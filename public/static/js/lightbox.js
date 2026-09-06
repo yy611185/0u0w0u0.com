@@ -29,7 +29,7 @@ export function initLightbox() {
 
   // Collect the real (non-placeholder) photos in DOM order.
   const photos = $$('.photo')
-    .map(fig => {
+    .map((fig) => {
       const img = $('img', fig)
       if (!img) return null
       const cap = $('.cap', fig)
@@ -39,7 +39,9 @@ export function initLightbox() {
         // so the lightbox reuses the already-cached WebP/JPEG.
         src: img.currentSrc || img.src,
         alt: img.getAttribute('alt') || '',
-        cap: cap ? cap.textContent.trim() : ''
+        cap: cap ? cap.textContent.trim() : '',
+        width: Number(img.getAttribute('width')) || img.naturalWidth,
+        height: Number(img.getAttribute('height')) || img.naturalHeight
       }
     })
     .filter(Boolean)
@@ -67,6 +69,8 @@ export function initLightbox() {
     const p = photos[index]
     imgEl.src = p.src
     imgEl.alt = p.alt
+    imgEl.width = p.width
+    imgEl.height = p.height
     if (capEl) capEl.textContent = p.cap
     if (countEl) countEl.textContent = many ? `${index + 1} / ${photos.length}` : ''
   }
@@ -96,7 +100,8 @@ export function initLightbox() {
         releaseTrap()
         releaseTrap = null
       }
-      if (lastFocused && document.contains(lastFocused) && !lastFocused.closest('[inert]')) lastFocused.focus()
+      if (lastFocused && document.contains(lastFocused) && !lastFocused.closest('[inert]'))
+        lastFocused.focus()
     }
   }
 
@@ -105,10 +110,7 @@ export function initLightbox() {
     const btn = document.createElement('button')
     btn.type = 'button'
     btn.className = 'photo-btn'
-    btn.setAttribute(
-      'aria-label',
-      `查看大图${p.cap ? `：${p.cap}` : ''}`
-    )
+    btn.setAttribute('aria-label', `查看大图${p.cap ? `：${p.cap}` : ''}`)
     btn.addEventListener('click', () => setOpen(true, i))
     p.fig.append(btn)
 
@@ -120,13 +122,13 @@ export function initLightbox() {
     p.fig.append(hint)
   })
 
-  $$('[data-lightbox-close]', lightbox).forEach(el =>
+  $$('[data-lightbox-close]', lightbox).forEach((el) =>
     el.addEventListener('click', () => setOpen(false))
   )
   if (prevBtn) prevBtn.addEventListener('click', () => show(index - 1))
   if (nextBtn) nextBtn.addEventListener('click', () => show(index + 1))
 
-  document.addEventListener('keydown', e => {
+  document.addEventListener('keydown', (e) => {
     if (!isOpen() || !isTopOverlay(lightbox)) return
     if (e.key === 'Escape') {
       e.preventDefault()

@@ -39,7 +39,7 @@ function initActiveLink() {
 
   // Map each anchor target to all links that point at it.
   const byTarget = new Map()
-  links.forEach(link => {
+  links.forEach((link) => {
     const id = link.getAttribute('href').slice(1)
     if (!id) return
     const target = document.getElementById(id)
@@ -55,20 +55,20 @@ function initActiveLink() {
     // When several targets are on screen, the topmost one wins.
     let best = null
     let bestTop = Infinity
-    visible.forEach(t => {
+    visible.forEach((t) => {
       const top = t.getBoundingClientRect().top
       if (top < bestTop) {
         bestTop = top
         best = t
       }
     })
-    links.forEach(l => l.removeAttribute('aria-current'))
-    if (best) byTarget.get(best).forEach(l => l.setAttribute('aria-current', 'location'))
+    links.forEach((l) => l.removeAttribute('aria-current'))
+    if (best) byTarget.get(best).forEach((l) => l.setAttribute('aria-current', 'location'))
   }
 
   const io = new IntersectionObserver(
-    entries => {
-      entries.forEach(e => {
+    (entries) => {
+      entries.forEach((e) => {
         if (e.isIntersecting) visible.add(e.target)
         else visible.delete(e.target)
       })
@@ -132,9 +132,9 @@ function initDrawer() {
   backdrop.addEventListener('click', () => setOpen(false))
 
   // Close on navigation — the anchor scroll is handled by initAnchors.
-  $$('a', menu).forEach(a => a.addEventListener('click', () => setOpen(false)))
+  $$('a', menu).forEach((a) => a.addEventListener('click', () => setOpen(false)))
 
-  document.addEventListener('keydown', e => {
+  document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && isOpen() && isTopOverlay(menu)) {
       e.preventDefault()
       e.stopImmediatePropagation()
@@ -159,7 +159,7 @@ function initDrawer() {
  * apply the nav offset, move focus for keyboard users, and keep the URL clean.
  */
 function initAnchors() {
-  document.addEventListener('click', e => {
+  document.addEventListener('click', (e) => {
     const link = e.target.closest('a[href^="#"]')
     if (!link) return
 

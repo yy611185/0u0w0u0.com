@@ -14,7 +14,7 @@ const MAX_TILT = 1.5 // degrees
 function attachTilt(card) {
   let raf = null
 
-  const onMove = rafThrottle(e => {
+  const onMove = rafThrottle((e) => {
     const r = card.getBoundingClientRect()
     // -0.5 … 0.5 relative to the card centre.
     const px = (e.clientX - r.left) / r.width - 0.5

@@ -1,129 +1,245 @@
 # OuOwOuO — Yang 的数字花园
 
-## 项目概览
-- **名称**：OuOwOuO（webapp）
-- **目标**：Yang 的个人网站 / 数字花园——自我介绍、项目作品、笔记、实验室（Lab）、照片墙、近况与联系方式。
-- **调性**：深夜紫蓝色调 + 玻璃拟态（glassmorphism）+ Caveat 手写体 + 标志性的猫。
-- **来源**：由 Genspark Design 交接（`designer2-19042f07-…` / `design_handoff_ouowouo_site.zip`），按 README 规范 1:1 高保真复刻。
+OuOwOuO 是一个以 Hono JSX 服务端渲染的多页面个人网站，用来持续发布项目、笔记、实验与生活记录。浏览器端只加载导航、搜索、动效和照片查看器所需的 Vanilla ES Modules，不使用 SPA 或 React Hydration。
 
-## URL
-- **沙盒预览**：https://3000-igkga7u9z3tzyv92c24oc-5c13a017.sandbox.novita.ai
-- **生产环境**：尚未部署（见下方「部署」）
+Production URL：<https://ouowouo.com/>
 
-## 已完成功能
-- 单页锚点式站点：Hero / Explore(含 Now · Projects · Notes · About · Stats) / The Lab / Photo Wall / All Projects / Contact(Footer)
-- 固定顶部胶囊导航（玻璃拟态）+ 滚动加深状态 + **当前 section 高亮**（`aria-current`）
-- 移动端汉堡菜单 + Drawer（ESC / 遮罩 / 点击链接关闭，焦点锁定 + 可叠层背景 `inert`）
-- `⌘/Ctrl + K`（或 `/`）全站搜索（↑↓/Home/End 选择、Enter 打开、Esc 关闭，combobox + `aria-activedescendant`）
-- **照片 Lightbox**：点击放大、←/→ 翻页、Esc 关闭、焦点锁定与归还
-- 响应式断点：1024 / 820 / 640 / 380px + 横屏手机；`prefers-reduced-motion` 全量支持
-- 所有位图 `<picture>` WebP 主源 + JPG/PNG 回落，并携带 `width`/`height`/`sizes`（CLS = 0）
+## 技术栈
 
-### 动效系统
-统一的 motion token（`--duration-fast|normal|slow` + 三条 easing 曲线），所有动画只使用 `transform` / `opacity`：
+- Hono 4 + Hono JSX SSR
+- TypeScript（strict）
+- Vite 8 + Cloudflare 官方 Vite 插件
+- Cloudflare Workers + Static Assets
+- MarkdownIt 内容解析
+- Vanilla JavaScript、原生 CSS、WebP 与自托管 WOFF2 字体
+- ESLint、Prettier、Vitest、GitHub Actions
 
-| 场景 | 实现 |
-|---|---|
-| 页面加载 | Navbar → 标题 → 副标题 → 标签 → CTA → 滚动提示，间隔 90ms，~1.0s 内完成 |
-| 滚动进入 | IntersectionObserver，`opacity 0→1` + `translateY 24px→0`，同组 70ms 递进，只触发一次 |
-| Hero | 背景 / 文字微视差（≤10px）、spark 3px 漂浮、滚动后提示淡出 |
-| 卡片 | `translateY(-2~3px)` + border / shadow 变化 |
-| 图片 | Hover `scale(1.04~1.05)`（外层 `overflow:hidden`） |
-| Lab 卡片 | 指针感知 ±1.5° tilt（仅 fine pointer） |
-| 按钮 | Hover `translateY(-1~2px)`、Active `scale(0.98)`、统一 focus-visible |
+## 架构
 
-动效均以 `html.js` 为前缀：无 JS 时页面完整可见；并有多轮兜底 sweep，保证任何元素都不会卡在 `opacity: 0`。
-
-### 图片资产优化
-不透明的照片原本用 PNG 做回落（1.1–1.6 MB / 张），已全部转为渐进式 JPEG；带 alpha 的两张猫重新量化；删除未使用的 `logo-wordmark`；新增 `og-image.jpg`（1200×630）。
-
-| 项 | 优化前 | 优化后 |
-|---|---|---|
-| 回落位图总体积 | 7.5 MB | 0.7 MB（**− 6.8 MB**）|
-
-### 背景图
-`#lab` / `#photos` / `#all-projects` 三节共用夜景猫咪背景 `bg-night-cat`。交接包中的 `bg-night-cat.jpg` 已重新编码为合适格式：
-
-| 文件 | 尺寸 | 大小 | 用途 |
-|---|---|---|---|
-| `public/static/assets/webp/bg-night-cat.webp` | 1500×843 | 55 KB | 桌面端主背景（WebP） |
-| `public/static/assets/webp/bg-night-cat-900.webp` | 900×506 | 28 KB | `≤768px` 移动端背景（WebP） |
-| `public/static/assets/bg-night-cat.jpg` | 1500×843 | 110 KB | 渐进式 JPEG 回落（旧浏览器） |
-
-CSS 使用 `image-set(… type('image/webp'), … type('image/jpeg'))` 自动选格式，并用 `@supports` 为不支持 `image-set` 的浏览器回落到 JPEG；移动端 `background-attachment: scroll`。`<head>` 中对桌面端预加载 WebP。
-
-## 功能入口
-| 路径 | 说明 |
-|---|---|
-| `/` | 主页（SSR，Hono JSX） |
-| `/#lab` `/#photos` `/#all-projects` `/#contact` 等 | 各 section 锚点 |
-| `/api/search-index` | 搜索索引 JSON（同时内联在页面 `#site-data` 中） |
-| `/static/style.css` | 设计 token + 全部样式 |
-| `/static/js/main.js` | ES module 入口（内部引入 core / animations / navigation / search / lightbox / interaction）|
-| `/static/assets/**` | 图片资源（`webp/` 子目录为 WebP 版本） |
-
-## 数据架构
-- **内容源**：`src/data.ts` — 站点配置（社交链接）、导航、项目、笔记、Lab、Now、统计、照片、搜索索引。纯静态，无数据库。
-- **渲染**：`src/renderer.tsx`（`<head>` / SEO / 字体）→ `src/index.tsx`（路由）→ `src/components/*`（Nav、Drawer、Footer、SearchModal、各 Section）。
-- **前端状态**：drawer / search / lightbox 保持局部状态，并共享 Overlay 层级、背景 `inert` 与滚动锁计数器，避免嵌套弹层提前暴露或解锁页面。
-
-## 项目结构
-```
-webapp/
-├── src/
-│   ├── index.tsx            # Hono 入口 & 路由
-│   ├── renderer.tsx         # HTML 外壳、SEO、字体、预加载
-│   ├── data.ts              # 全站内容/配置
-│   └── components/
-│       ├── shared.tsx       # Picture / SectionHead / TagList / Arrow / Card
-│       ├── layout.tsx       # Nav / MobileDrawer / Footer / SearchModal / Lightbox
-│       └── sections.tsx     # Hero / Explore / Lab / Photos / AllProjects
-├── public/static/
-│   ├── style.css            # 设计 token + motion token + 全部样式
-│   ├── js/
-│   │   ├── main.js          # 入口：依次启动各模块
-│   │   ├── core.js          # 共享工具：滚动锁 / 焦点锁定 / inert / rAF 节流
-│   │   ├── animations.js    # 加载序列 / 滚动揭示 / Hero 视差
-│   │   ├── navigation.js    # 滚动状态 / 当前 section / Drawer / 锚点滚动
-│   │   ├── search.js        # ⌘K 命令面板
-│   │   ├── lightbox.js      # 照片查看器
-│   │   └── interaction.js   # Lab 卡片指针 tilt
-│   ├── favicon.svg
-│   └── assets/              # JPG/PNG 回落 + webp/ 目录 + og-image.jpg
-├── ecosystem.config.cjs     # PM2（沙盒开发）
-├── wrangler.jsonc
-└── vite.config.ts
+```text
+Browser
+   ↓
+Cloudflare Workers Static Assets（图片、字体、CSS、JS）
+   ↓ 未匹配静态文件的请求
+Hono Worker（SSR、内容路由、搜索 API、SEO feeds）
 ```
 
-## 使用指南
-- 顶部导航或 Drawer 点击锚点平滑滚动到对应 section。
-- 按 `⌘K` / `Ctrl+K` 或点击 🔍 打开搜索，输入关键词（如「AI」「笔记」）后用方向键 + Enter 跳转。
-- 修改内容：编辑 `src/data.ts`；社交链接在 `SITE.social` 中按需配置，未配置项不会渲染。
+Cloudflare 官方 Vite 插件让开发和预览都运行在 Workers 的 `workerd` 环境中。Vite 构建后会生成供 Wrangler 使用的输出配置；根目录的 `wrangler.jsonc` 始终是人工维护的配置源。
 
-## 可访问性
-- 语义标签：`<ul>` 列表化的 hero 标签 / 项目 tag / 社交链接；`<time datetime>`；`<figure>/<figcaption>`
-- 键盘：Drawer / 搜索 / Lightbox 均支持 Tab 锁定、顶层 Esc 关闭、焦点归还；隐藏层和背景正确使用 `aria-hidden` / `inert`
-- 焦点：全站统一 `focus-visible` 描边；hover 效果均有 `:focus-visible` 对应态
-- 装饰图 `alt=""`，内容图均有描述性 alt；照片数据占位默认不进入正式页面
-- 所有 hover 样式包在 `@media (hover: hover) and (pointer: fine)`，触屏不会“粘住” hover 态
+## 目录结构
 
-## 待办 / 未实现
-- 项目 / 笔记 / Lab 详情页（当前卡片为非链接展示，搜索仍可定位到对应卡片）
-- Photo Wall 后 3 个未来位置仍保留在数据层，正式页面不渲染
-- X 暂未配置；`SITE.social` 未配置字段会自动省略
-- 字体仍走 Google Fonts CDN（可进一步自托 woff2 + subset）
-- Analytics 接入
-- 生产部署
-
-## 开发
-```bash
-npm run build                        # 构建到 dist/
-pm2 start ecosystem.config.cjs       # 沙盒启动 wrangler pages dev（端口 3000）
-curl http://localhost:3000           # 验证
+```text
+content/
+├── lab/                    # 实验 Markdown
+├── notes/                  # 笔记 Markdown
+└── projects/               # 项目 Markdown
+public/
+├── _headers                # Static Assets 缓存与安全响应头
+└── static/
+    ├── assets/             # 图片与 WebP
+    ├── fonts/              # 自托管 WOFF2 与 OFL license
+    ├── js/                 # Vanilla ES Modules
+    ├── favicon.svg
+    └── style.css
+src/
+├── components/             # 布局、页面与共享 JSX
+├── content/                # 内容解析、校验、查询
+├── data.ts                 # 站点、导航、图片等配置
+├── index.tsx               # Hono 路由与 Worker 入口
+├── renderer.tsx            # 文档框架与页面 metadata
+├── search.ts               # 搜索索引
+└── seo.ts                  # URL、Sitemap、RSS、robots 工具
+.github/workflows/ci.yml
+eslint.config.js
+vite.config.ts
+wrangler.jsonc
 ```
 
-## 部署
-- **平台**：Cloudflare Pages（Hono + Vite）
-- **状态**：⏳ 未部署（本地 / 沙盒预览可用）
-- **技术栈**：Hono 4 · TypeScript · Hono JSX (SSR) · 原生 CSS（设计 token）· 原生 JS
-- **最后更新**：2026-09-05（前端体验与交互优化阶段）
+## 环境要求
+
+- Node.js 24 LTS；推荐使用 `.nvmrc` 中的 `24.20.0`
+- npm 11+
+
+项目 `engines` 限定 Node 24，以统一 Vite、Vitest、ESLint 和 Wrangler 的运行环境。
+
+## 安装
+
+```powershell
+Set-Location "D:\0u0w0u0.com"
+npm install
+```
+
+CI 和可复现环境使用：
+
+```powershell
+npm ci
+```
+
+## 本地开发
+
+```powershell
+npm run dev
+```
+
+Vite 会启动本地 Workers 开发环境并显示访问地址。常用质量命令：
+
+```powershell
+npm run typecheck
+npm run lint
+npm run format
+npm run format:check
+npm run test
+```
+
+历史 `public/static/style.css` 被明确排除在全量 Prettier 重排之外，避免仅为格式产生大规模 CSS diff；新增 CSS 仍应沿用现有风格。
+
+## Build 与本地预览
+
+```powershell
+npm run build
+npm run preview
+```
+
+`npm run build` 会生成 Worker bundle、source map、Static Assets 目录和 Wrangler 输出配置。`npm run preview` 使用 `workerd` 预览最新构建，不会部署。
+
+可进行不发布的 Wrangler 验证：
+
+```powershell
+npx wrangler --version
+npx wrangler types
+npm run build
+npx wrangler deploy --dry-run
+```
+
+`--dry-run` 只编译并检查待上传内容，不会创建线上 deployment。
+
+## 内容系统
+
+Frontmatter 会在构建时校验必填字段、日期格式、URL-safe slug、枚举状态、图片 key 与同类 slug 重复。Markdown Raw HTML 已关闭。
+
+`draft: true` 的内容可以在开发环境查看；生产构建不会让它进入列表、详情或搜索索引。Sitemap 与 RSS 会再次显式过滤 draft。
+
+### 添加 Note
+
+在 `content/notes/` 新建 `.md`：
+
+```yaml
+---
+title: 标题
+slug: url-safe-slug
+date: 2026-09-06
+updated: 2026-09-06
+description: 页面与搜索摘要
+tags:
+  - 标签
+draft: false
+---
+```
+
+### 添加 Project
+
+在 `content/projects/` 新建 `.md`，除通用字段外还需要：
+
+```yaml
+tagline: 一句话定位
+cover: yangfolio
+status: active
+repository: ''
+demo: ''
+stack:
+  - TypeScript
+featured: true
+```
+
+`status` 只能是 `active`、`complete` 或 `archived`。`cover` 必须在 `src/content/projects.ts` 的图片映射中存在。
+
+### 添加 Lab
+
+在 `content/lab/` 新建 `.md`，除通用字段外还需要：
+
+```yaml
+status: WIP
+stack:
+  - CSS
+emoji: 🧪
+```
+
+`status` 只能是 `LIVE`、`BETA` 或 `WIP`。
+
+## SEO
+
+- 所有页面输出独立的 title、description、canonical、Open Graph 与 Twitter metadata。
+- Canonical 使用无尾斜杠策略，根路径除外。
+- `/sitemap.xml` 从静态路由和发布内容自动生成。
+- `/robots.txt` 允许正常抓取并指向 Sitemap。
+- `/rss.xml` 自动收录已发布 Notes，使用绝对 URL。
+- 首页输出 `WebSite` 与 `Person` JSON-LD；笔记输出 `BlogPosting`；项目输出 `SoftwareApplication`；实验详情输出 `CreativeWork`。
+- 404 与 500 页面明确输出 `noindex`。
+- Production base URL 只在 `src/data.ts` 维护：`https://ouowouo.com/`。
+
+## 性能与可访问性
+
+- 所有内容图片包含 intrinsic width/height、响应式 `sizes`、WebP/fallback 与异步解码。
+- 首屏 hero WebP 使用 preload，详情 hero 使用高优先级；折叠线下图片使用 lazy loading。
+- Manrope（400–700）与 Caveat（700）只自托管使用到的 Latin WOFF2；中文回退到系统字体。
+- 静态资源使用可更新的缓存策略，不使用 `immutable`，因为当前文件名没有内容 hash。
+- 动效在 `prefers-reduced-motion: reduce` 下停止循环、滚动 reveal、视差与 tilt。
+- 导航、抽屉、搜索和 Lightbox 支持焦点圈、焦点陷阱、Escape、方向键与焦点恢复。
+- 页面包含 skip link，弹层使用 `inert`、`aria-hidden`、`aria-expanded` 和明确的 accessible name。
+
+## Security Headers
+
+Hono SSR 响应使用逐请求 nonce 的 Content Security Policy，同时发送：
+
+- `X-Content-Type-Options: nosniff`
+- `Referrer-Policy: strict-origin-when-cross-origin`
+- `Permissions-Policy`
+- `frame-ancestors 'none'`
+
+`public/_headers` 为 Worker 直接返回的静态资源补充缓存和安全响应头。CSP 只允许本站脚本、样式、字体、图片和连接；没有第三方字体或 tracking 来源。
+
+## Cloudflare 配置
+
+`wrangler.jsonc` 使用当前 Workers 架构并配置：
+
+- Hono Worker 入口 `src/index.tsx`
+- 最新兼容日期
+- `nodejs_compat`
+- Workers Static Assets 的无尾斜杠 HTML 策略
+- Workers Logs 与低采样率 traces
+
+P2 不创建 D1、R2、KV、Turnstile 或其他 production binding。未来添加 binding 后，必须重新运行：
+
+```powershell
+npm run cf-typegen
+npm run typecheck
+```
+
+不要手写 binding interface，也不要把 secret 写进源码或 `wrangler.jsonc`。本地 secret 使用已被 Git 忽略的 `.dev.vars`。
+
+## CI
+
+`.github/workflows/ci.yml` 在 pull request 和推送到 `main` 时执行：
+
+1. `npm ci`
+2. `npm run typecheck`
+3. `npm run lint`
+4. `npm run format:check`
+5. `npm run test`
+6. `npm run build`
+
+CI 只验证代码，不进行 Cloudflare 部署。
+
+## Production deployment
+
+仓库刻意不提供会被误触的一键 deploy script。获得明确上线授权后，再执行以下流程：
+
+1. 确认 Cloudflare 账户、Worker 名称和 `ouowouo.com` zone 归属正确。
+2. 确认 Node 版本、干净工作区、CI 和全部本地质量命令通过。
+3. 运行 `npm run build` 与 `npx wrangler deploy --dry-run`，检查 bundle、assets 和 bindings。
+4. 在 Cloudflare 中确认 production custom domain/route、DNS 与预览 URL 策略。
+5. 仅在授权后运行 `npx wrangler deploy`。
+6. 上线后检查首页、内容详情、404、Sitemap、robots、RSS、安全响应头和缓存响应头。
+7. 如需 Cloudflare Web Analytics，先从控制台取得真实配置；不要提交 token 或虚构 ID。
+
+本项目当前是 production-ready 本地配置，尚未进行 production deployment、DNS 修改或远端资源创建。
