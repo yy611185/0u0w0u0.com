@@ -25,16 +25,20 @@ const STAGGER = 70 // ms between siblings inside one revealed group
 const MAX_STAGGER_STEPS = 6 // cap so a long grid never crawls in
 
 /**
- * Mark the entrance targets and hand them their delays.
- * Runs before paint so nothing flashes in un-animated.
+ * Mark the entrance targets and hand them their delays. Delays are applied
+ * through the CSSOM instead of SSR style attributes so the strict CSP can keep
+ * `style-src 'self'` without `unsafe-inline`.
  */
 function primeLoadSequence() {
   LOAD_STEPS.forEach(([selector, delay]) => {
     const el = $(selector)
     if (!el) return
-    // The hero visual settles in scale; everything else rises.
     el.setAttribute('data-load', el.classList.contains('hero-visual') ? 'scale' : '')
     el.style.setProperty('--load-delay', `${delay}ms`)
+  })
+
+  $$('[data-load]').forEach((el) => {
+    if (!el.style.getPropertyValue('--load-delay')) el.style.setProperty('--load-delay', '100ms')
   })
 }
 
@@ -46,6 +50,7 @@ const REVEAL_GROUPS = [
   '.lab-grid > .lab-card',
   '.photo-grid > .photo',
   '.ap-grid > .ap-card',
+  '.project-index > .project-index-card',
   '.footer-grid > *',
   '.footer-bottom'
 ]
@@ -54,7 +59,6 @@ const REVEAL_GROUPS = [
 function primeReveals() {
   REVEAL_GROUPS.forEach((selector) => {
     const items = $$(selector)
-    // Delays restart per parent so each grid staggers from its own first item.
     const seen = new Map()
     items.forEach((el) => {
       const parent = el.parentElement
@@ -91,16 +95,10 @@ function initScrollReveal() {
         if (!entry.isIntersecting) return
         const el = entry.target
         el.classList.add('is-visible')
-        // Reveal once only — unobserving prevents any re-flicker when the
-        // user scrolls back up or scrolls fast past the element.
         io.unobserve(el)
       })
     },
     {
-      // A small FIXED bottom inset (not a percentage): items animate just
-      // before they are fully in view, while elements pinned to the very
-      // bottom of the document — e.g. .footer-bottom, which can never clear
-      // a percentage-based inset — still trigger when scrolled to.
       rootMargin: '0px 0px -48px 0px',
       threshold: 0
     }
@@ -108,16 +106,11 @@ function initScrollReveal() {
 
   targets.forEach((el) => io.observe(el))
 
-  /* Fail-safe. Guarantees nothing is ever permanently invisible — covers a
-     restored scroll position, an element in a collapsed container, or an
-     observer callback that never fires. Runs a few times then stops, so
-     there is no lingering timer. */
   let sweeps = 0
   const sweep = () => {
     const pending = $$('[data-reveal]:not(.is-visible)')
     pending.forEach((el) => {
       const r = el.getBoundingClientRect()
-      // Anything already within (or above) the viewport must be visible.
       if (r.top < window.innerHeight && r.bottom > -1) {
         el.classList.add('is-visible')
         io.unobserve(el)
@@ -133,8 +126,8 @@ function initScrollReveal() {
 function initAnimationCleanup() {
   document.addEventListener(
     'animationend',
-    (e) => {
-      if (e.animationName === 'reveal-in') e.target.classList.add('is-done')
+    (event) => {
+      if (event.animationName === 'reveal-in') event.target.classList.add('is-done')
     },
     true
   )
@@ -151,21 +144,19 @@ function initHeroParallax() {
   const hint = $('.scroll-hint')
   if (!hero) return
 
-  const MAX_SHIFT = 10 // px — deliberately tiny
+  const MAX_SHIFT = 10
 
   const update = () => {
     const y = window.scrollY
     const h = hero.offsetHeight || 1
     const progress = Math.min(1, Math.max(0, y / h))
 
-    // Background drifts down slowly as the page scrolls up.
     hero.style.backgroundPosition = `center calc(50% + ${(progress * MAX_SHIFT).toFixed(2)}px)`
 
     if (heroText) {
       heroText.style.transform = `translate3d(0, ${(progress * MAX_SHIFT * 1.6).toFixed(2)}px, 0)`
       heroText.style.opacity = String(Math.max(0, 1 - progress * 1.15))
     }
-    // The scroll hint has done its job after the first ~80px.
     if (hint) hint.setAttribute('data-hidden', y > 80 ? 'true' : 'false')
   }
 
@@ -189,7 +180,6 @@ export function initAnimations() {
   initAnimationCleanup()
 
   if (prefersReducedMotion()) {
-    // Content appears immediately; no parallax, no staggering.
     settleAll()
     return
   }
