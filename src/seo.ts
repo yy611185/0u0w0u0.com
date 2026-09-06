@@ -6,13 +6,13 @@ export type PageMeta = {
   description?: string
   canonical?: string
   image?: string
+  imageWidth?: number
+  imageHeight?: number
   type?: 'website' | 'article'
   robots?: string
 }
 
-export type ResolvedPageMeta = Required<Omit<PageMeta, 'robots'>> & {
-  robots: string
-}
+export type ResolvedPageMeta = Required<PageMeta>
 
 export const STATIC_ROUTES = [
   '/',
@@ -40,6 +40,8 @@ export function resolvePageMeta(meta: PageMeta, requestPath: string): ResolvedPa
     description: meta.description ?? SITE.description,
     canonical: absoluteUrl(meta.canonical ?? requestPath),
     image: new URL(meta.image ?? '/static/assets/og-image.jpg', SITE.url).toString(),
+    imageWidth: meta.imageWidth ?? 1200,
+    imageHeight: meta.imageHeight ?? 630,
     type: meta.type ?? 'website',
     robots: meta.robots ?? 'index, follow'
   }
