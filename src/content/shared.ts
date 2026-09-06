@@ -256,8 +256,9 @@ export function buildCollection<T extends BaseContent>(
   const visible = items
     .filter((item) => includeDrafts || !item.draft)
     .sort((a, b) => b.date.localeCompare(a.date))
+  const visibleBySlug = new Map(visible.map((item) => [item.slug, item]))
   return {
     all: () => visible,
-    bySlug: (slug: string) => visible.find((item) => item.slug === slug)
+    bySlug: (slug: string) => visibleBySlug.get(slug)
   }
 }
