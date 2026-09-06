@@ -12,7 +12,7 @@ Production URL：<https://0u0w0u0.com/>
 - Cloudflare Workers + Static Assets
 - MarkdownIt 内容解析
 - Vanilla JavaScript、原生 CSS、WebP 与自托管 WOFF2 字体
-- ESLint、Prettier、Vitest、GitHub Actions
+- ESLint、Prettier、Vitest、Playwright、GitHub Actions
 
 ## 架构
 
@@ -49,8 +49,11 @@ src/
 ├── renderer.tsx            # 文档框架与页面 metadata
 ├── search.ts               # 搜索索引
 └── seo.ts                  # URL、Sitemap、RSS、robots 工具
+e2e/
+└── site.spec.mjs           # Playwright 浏览器 smoke tests
 .github/workflows/ci.yml
 eslint.config.js
+playwright.config.mjs
 vite.config.ts
 wrangler.jsonc
 ```
@@ -75,6 +78,12 @@ CI 和可复现环境使用：
 npm ci
 ```
 
+Playwright 测试依赖已固定在 `devDependencies` 与 `package-lock.json` 中。首次在本机运行浏览器测试前安装 Chromium：
+
+```powershell
+npx playwright install chromium
+```
+
 ## 本地开发
 
 ```powershell
@@ -89,7 +98,10 @@ npm run lint
 npm run format
 npm run format:check
 npm run test
+npm run test:e2e
 ```
+
+`npm run test` 运行 Vitest 单元测试；`npm run test:e2e` 运行 Playwright 浏览器测试，并由 `playwright.config.mjs` 自动启动本地 preview server。
 
 历史 `public/static/style.css` 被明确排除在全量 Prettier 重排之外，避免仅为格式产生大规模 CSS diff；新增 CSS 仍应沿用现有风格。
 
@@ -231,8 +243,10 @@ npm run typecheck
 4. `npm run format:check`
 5. `npm run test`
 6. `npm run build`
+7. `npx playwright install --with-deps chromium`
+8. `npm run test:e2e`
 
-CI 只验证代码，不进行 Cloudflare 部署。
+Playwright runner 本身由 `npm ci` 从锁定依赖安装，不再在 CI 中临时执行 `npm install --no-save`。CI 只验证代码，不进行 Cloudflare 部署。
 
 ## Production deployment
 

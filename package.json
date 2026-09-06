@@ -13,6 +13,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run src",
+    "test:e2e": "playwright test",
     "preview": "vite preview",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings"
   },
@@ -23,6 +24,7 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.54.4",
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "1.63.0",
     "@types/markdown-it": "^14.2.0",
     "@types/node": "^24.10.0",
     "eslint": "^10.10.0",
