@@ -142,7 +142,7 @@ function initHeroParallax() {
   const hero = $('.hero')
   const heroText = $('.hero-text')
   const hint = $('.scroll-hint')
-  if (!hero) return
+  if (!hero) return undefined
 
   const MAX_SHIFT = 10
 
@@ -171,6 +171,7 @@ function initHeroParallax() {
       heroText.style.transform = ''
       heroText.style.opacity = ''
     }
+    if (hint) hint.removeAttribute('data-hidden')
   }
 }
 
@@ -181,11 +182,12 @@ export function initAnimations() {
 
   if (prefersReducedMotion()) {
     settleAll()
-    return
+    return () => {}
   }
 
   initScrollReveal()
-  initHeroParallax()
+  const cleanupParallax = initHeroParallax()
+  return () => cleanupParallax?.()
 }
 
 export { settleAll }
