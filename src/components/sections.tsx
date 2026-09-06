@@ -46,18 +46,6 @@ export const Hero: FC = () => (
         </div>
       </div>
     </div>
-    <div class="scroll-hint" aria-hidden="true">
-      <span>向下探索更多</span>
-      <svg width="12" height="8" viewBox="0 0 12 8">
-        <path
-          d="M1 1l5 5 5-5"
-          stroke="currentColor"
-          stroke-width="1.5"
-          fill="none"
-          stroke-linecap="round"
-        />
-      </svg>
-    </div>
   </section>
 )
 
