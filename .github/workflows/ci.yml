@@ -31,11 +31,8 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Inspect formatting
-        run: |
-          npx prettier --write src/components/pages.tsx src/content/shared.ts
-          git diff -- src/components/pages.tsx src/content/shared.ts
-          exit 1
+      - name: Check formatting
+        run: npm run format:check
 
       - name: Test
         run: npm run test
