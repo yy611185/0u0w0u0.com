@@ -93,7 +93,8 @@ export function parseSource(source: string, file: string) {
 function assertKnownKeys(data: Frontmatter, keys: readonly string[], file: string) {
   const allowed = new Set(keys)
   for (const key of Object.keys(data)) {
-    if (!allowed.has(key)) throw new Error(`[content] ${file}: unsupported frontmatter field "${key}"`)
+    if (!allowed.has(key))
+      throw new Error(`[content] ${file}: unsupported frontmatter field "${key}"`)
   }
 }
 
@@ -147,9 +148,7 @@ function validDate(value: string) {
   const day = Number(match[3])
   const date = new Date(Date.UTC(year, month - 1, day))
   return (
-    date.getUTCFullYear() === year &&
-    date.getUTCMonth() === month - 1 &&
-    date.getUTCDate() === day
+    date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
   )
 }
 
