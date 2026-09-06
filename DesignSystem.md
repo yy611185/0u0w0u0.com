@@ -101,22 +101,22 @@ Lab：
 
 ### 3.1 Neutral / Midnight
 
-| Token | Value | Usage |
-|---|---|---|
-| `canvas` | `#0B0F1E` | 页面背景 |
-| `surface-1` | `#111634` | 普通 Surface |
-| `surface-2` | `#1A2044` | Card |
-| `surface-3` | `#1E2550` | Modal / Floating |
+| Token           | Value     | Usage            |
+| --------------- | --------- | ---------------- |
+| `canvas`        | `#0B0F1E` | 页面背景         |
+| `surface-1`     | `#111634` | 普通 Surface     |
+| `surface-2`     | `#1A2044` | Card             |
+| `surface-3`     | `#1E2550` | Modal / Floating |
 | `surface-hover` | `#232A54` | Hover / Elevated |
 
 ### 3.2 Text
 
-| Token | Value |
-|---|---|
-| `text-primary` | `#F4F2FF` |
+| Token            | Value     |
+| ---------------- | --------- |
+| `text-primary`   | `#F4F2FF` |
 | `text-secondary` | `#C9C8E6` |
-| `text-tertiary` | `#A5A4CC` |
-| `text-muted` | `#8586AA` |
+| `text-tertiary`  | `#A5A4CC` |
+| `text-muted`     | `#8586AA` |
 
 禁止使用纯：
 
@@ -163,12 +163,12 @@ Lab：
 
 ### 4.3 Semantic
 
-| Role | Value |
-|---|---|
+| Role    | Value     |
+| ------- | --------- |
 | Success | `#9BE3B7` |
-| Info | `#7AD3FF` |
+| Info    | `#7AD3FF` |
 | Warning | `#F5C86F` |
-| Danger | `#FF8FA3` |
+| Danger  | `#FF8FA3` |
 
 这些颜色只代表状态。
 
@@ -181,10 +181,10 @@ Lab：
 深色界面主要通过 **Border 而不是 Shadow** 表达层级。
 
 ```css
---border-subtle: rgba(255,255,255,.08);
---border-default: rgba(255,255,255,.11);
---border-strong: rgba(255,255,255,.16);
---border-accent: rgba(184,164,255,.35);
+--border-subtle: rgba(255, 255, 255, 0.08);
+--border-default: rgba(255, 255, 255, 0.11);
+--border-strong: rgba(255, 255, 255, 0.16);
+--border-accent: rgba(184, 164, 255, 0.35);
 ```
 
 默认 Card：
@@ -302,7 +302,7 @@ weight: 600
 可使用：
 
 ```css
-letter-spacing: .08em;
+letter-spacing: 0.08em;
 text-transform: uppercase;
 ```
 
@@ -504,9 +504,9 @@ Glass 是 OuOwOuO 的辅助语言，不是主语言。
 标准：
 
 ```css
-background: rgba(17,22,52,.72);
+background: rgba(17, 22, 52, 0.72);
 
-border: 1px solid rgba(255,255,255,.10);
+border: 1px solid rgba(255, 255, 255, 0.1);
 
 backdrop-filter: blur(20px) saturate(135%);
 ```
@@ -531,8 +531,8 @@ backdrop-filter: blur(20px) saturate(135%);
 --motion-base: 240ms;
 --motion-slow: 480ms;
 
---ease-out: cubic-bezier(.22,1,.36,1);
---ease-standard: cubic-bezier(.4,0,.2,1);
+--ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+--ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
 ```
 
 ---
@@ -560,7 +560,7 @@ Image scale：
 ### Press
 
 ```css
-transform: scale(.98);
+transform: scale(0.98);
 ```
 
 ### Scroll Reveal
@@ -977,7 +977,7 @@ z-index: 100000;
 统一：
 
 ```css
-outline: 2px solid #B8A4FF;
+outline: 2px solid #b8a4ff;
 outline-offset: 3px;
 ```
 
@@ -1122,13 +1122,14 @@ Editorial List
 
 OuOwOuO 应该遵循：
 
-> **Midnight Canvas  
-> + Strong Typography  
-> + Quiet Glass  
-> + Lavender Accent  
-> + Warm Spark  
-> + Natural Photography  
-> + Restrained Motion**
+> **Midnight Canvas
+>
+> - Strong Typography
+> - Quiet Glass
+> - Lavender Accent
+> - Warm Spark
+> - Natural Photography
+> - Restrained Motion**
 
 而不是：
 
