@@ -41,8 +41,9 @@ const markdown = new MarkdownIt({
   typographer: true
 })
 
-const DATE = /^\d{4}-\d{2}-\d{2}$/
+const DATE = /^(\d{4})-(\d{2})-(\d{2})$/
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+const COMMON_KEYS = ['title', 'slug', 'description', 'date', 'updated', 'draft'] as const
 
 function scalar(value: string): string | boolean {
   const clean = value.trim()
@@ -89,6 +90,14 @@ export function parseSource(source: string, file: string) {
   return { data, body: body.trim() }
 }
 
+function assertKnownKeys(data: Frontmatter, keys: readonly string[], file: string) {
+  const allowed = new Set(keys)
+  for (const key of Object.keys(data)) {
+    if (!allowed.has(key))
+      throw new Error(`[content] ${file}: unsupported frontmatter field "${key}"`)
+  }
+}
+
 function requiredString(data: Frontmatter, key: string, file: string) {
   const value = data[key]
   if (typeof value !== 'string' || !value.trim())
@@ -96,15 +105,51 @@ function requiredString(data: Frontmatter, key: string, file: string) {
   return value.trim()
 }
 
+function requiredBoolean(data: Frontmatter, key: string, file: string) {
+  const value = data[key]
+  if (typeof value !== 'boolean') throw new Error(`[content] ${file}: ${key} must be true or false`)
+  return value
+}
+
 function optionalString(data: Frontmatter, key: string) {
   const value = data[key]
   return typeof value === 'string' && value.trim() ? value.trim() : undefined
 }
 
+function optionalHttpUrl(data: Frontmatter, key: string, file: string) {
+  const value = optionalString(data, key)
+  if (!value) return undefined
+
+  let url: URL
+  try {
+    url = new URL(value)
+  } catch {
+    throw new Error(`[content] ${file}: ${key} must be a valid http(s) URL`)
+  }
+  if (url.protocol !== 'http:' && url.protocol !== 'https:')
+    throw new Error(`[content] ${file}: ${key} must be a valid http(s) URL`)
+  return value
+}
+
 function stringList(data: Frontmatter, key: string, file: string) {
   const value = data[key]
   if (!Array.isArray(value)) throw new Error(`[content] ${file}: ${key} must be a YAML list`)
-  return value
+  const items = value.map((item) => item.trim())
+  if (items.some((item) => !item))
+    throw new Error(`[content] ${file}: ${key} must not contain empty values`)
+  return items
+}
+
+function validDate(value: string) {
+  const match = value.match(DATE)
+  if (!match) return false
+  const year = Number(match[1])
+  const month = Number(match[2])
+  const day = Number(match[3])
+  const date = new Date(Date.UTC(year, month - 1, day))
+  return (
+    date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+  )
 }
 
 function common(source: string, file: string) {
@@ -113,10 +158,10 @@ function common(source: string, file: string) {
   const date = requiredString(data, 'date', file)
   const updated = requiredString(data, 'updated', file)
   if (!SLUG.test(slug)) throw new Error(`[content] ${file}: slug "${slug}" is not URL safe`)
-  if (!DATE.test(date) || !DATE.test(updated))
-    throw new Error(`[content] ${file}: date and updated must use YYYY-MM-DD`)
-  if (typeof data.draft !== 'boolean')
-    throw new Error(`[content] ${file}: draft must be true or false`)
+  if (!validDate(date) || !validDate(updated))
+    throw new Error(`[content] ${file}: date and updated must be real dates using YYYY-MM-DD`)
+  if (updated < date) throw new Error(`[content] ${file}: updated must not be earlier than date`)
+  const draft = requiredBoolean(data, 'draft', file)
   const plain = body
     .replace(/[`#>*_\[\]()!-]/g, ' ')
     .replace(/\s+/g, ' ')
@@ -131,7 +176,7 @@ function common(source: string, file: string) {
       description: requiredString(data, 'description', file),
       date,
       updated,
-      draft: data.draft,
+      draft,
       content: markdown.render(body),
       readingTime: Math.max(1, Math.ceil(units / 300))
     } satisfies BaseContent
@@ -140,6 +185,7 @@ function common(source: string, file: string) {
 
 export function parseNote(source: string, file: string): Note {
   const { data, base } = common(source, file)
+  assertKnownKeys(data, [...COMMON_KEYS, 'tags'], file)
   return { ...base, tags: stringList(data, 'tags', file) }
 }
 
@@ -149,6 +195,21 @@ export function parseProject(
   covers: Record<string, ImageAsset>
 ): Project {
   const { data, base } = common(source, file)
+  assertKnownKeys(
+    data,
+    [
+      ...COMMON_KEYS,
+      'tagline',
+      'cover',
+      'tags',
+      'status',
+      'repository',
+      'demo',
+      'stack',
+      'featured'
+    ],
+    file
+  )
   const coverKey = requiredString(data, 'cover', file)
   const cover = covers[coverKey]
   if (!cover) throw new Error(`[content] ${file}: unknown cover "${coverKey}"`)
@@ -161,15 +222,16 @@ export function parseProject(
     cover,
     tags: stringList(data, 'tags', file),
     status: status as Project['status'],
-    repository: optionalString(data, 'repository'),
-    demo: optionalString(data, 'demo'),
+    repository: optionalHttpUrl(data, 'repository', file),
+    demo: optionalHttpUrl(data, 'demo', file),
     stack: stringList(data, 'stack', file),
-    featured: data.featured === true
+    featured: requiredBoolean(data, 'featured', file)
   }
 }
 
 export function parseLabItem(source: string, file: string): LabItem {
   const { data, base } = common(source, file)
+  assertKnownKeys(data, [...COMMON_KEYS, 'status', 'stack', 'emoji'], file)
   const status = requiredString(data, 'status', file)
   if (!['LIVE', 'BETA', 'WIP'].includes(status))
     throw new Error(`[content] ${file}: invalid lab status "${status}"`)

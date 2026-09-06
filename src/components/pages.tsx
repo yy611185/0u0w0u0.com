@@ -2,7 +2,7 @@ import type { FC } from 'hono/jsx'
 import { raw } from 'hono/html'
 import { useRequestContext } from 'hono/jsx-renderer'
 import type { LabItem, Note, Project } from '../content'
-import { IMAGES, NOW_ITEMS, PHOTOS } from '../data'
+import { IMAGES, NOW_ITEMS, NOW_META, PHOTOS } from '../data'
 import { Arrow, Picture, TagList } from './shared'
 
 const zhDate = (date: string) =>
@@ -18,7 +18,7 @@ export const PageHero: FC<{ eyebrow: string; title: string; description: string 
   title,
   description
 }) => (
-  <header class="page-hero container" data-load style="--load-delay: 100ms">
+  <header class="page-hero container" data-load>
     <p class="eyebrow">{eyebrow}</p>
     <h1>{title}</h1>
     <p>{description}</p>
@@ -79,7 +79,7 @@ export const NoteDetail: FC<{ note: Note; previous?: Note; next?: Note }> = ({
   next
 }) => (
   <article class="article-page">
-    <header class="article-header container" data-load style="--load-delay: 100ms">
+    <header class="article-header container" data-load>
       <a class="back-link" href="/notes">
         ← 返回笔记
       </a>
@@ -126,12 +126,7 @@ export const ProjectsIndex: FC<{ projects: Project[] }> = ({ projects }) => (
     />
     <section class="project-index container" aria-label="全部项目">
       {projects.map((project, i) => (
-        <a
-          class="project-index-card"
-          href={`/projects/${project.slug}`}
-          data-reveal
-          style={`--reveal-delay:${(i % 3) * 70}ms`}
-        >
+        <a class="project-index-card" href={`/projects/${project.slug}`} data-reveal>
           <div class="project-index-cover">
             <Picture
               image={project.cover}
@@ -163,7 +158,7 @@ export const ProjectDetail: FC<{ project: Project; related: Project[] }> = ({
   related
 }) => (
   <article class="project-page">
-    <header class="project-hero container" data-load style="--load-delay: 100ms">
+    <header class="project-hero container" data-load>
       <div class="project-hero-copy">
         <a class="back-link" href="/projects">
           ← 返回项目
@@ -267,7 +262,7 @@ export const LabIndex: FC<{ items: LabItem[] }> = ({ items }) => (
 
 export const LabDetail: FC<{ item: LabItem }> = ({ item }) => (
   <article class="article-page lab-detail">
-    <header class="article-header container" data-load style="--load-delay: 100ms">
+    <header class="article-header container" data-load>
       <a class="back-link" href="/lab">
         ← 返回实验室
       </a>
@@ -290,7 +285,7 @@ export const LabDetail: FC<{ item: LabItem }> = ({ item }) => (
 export const NowPage: FC = () => (
   <>
     <PageHero
-      eyebrow="Now / September 2026"
+      eyebrow={`Now / ${NOW_META.label}`}
       title="此刻，正在发生的事"
       description="一张不追求完整的近况快照。它会随着注意力、季节和手边的问题一起改变。"
     />
@@ -310,7 +305,8 @@ export const NowPage: FC = () => (
       ))}
     </section>
     <p class="updated-note container">
-      最后更新于 <time datetime="2026-09-05">2026.09.05</time> · 灵感来自 Derek Sivers 的{' '}
+      最后更新于 <time datetime={NOW_META.updated}>{NOW_META.updatedDisplay}</time> · 灵感来自 Derek
+      Sivers 的{' '}
       <a href="https://nownownow.com/about" rel="noopener noreferrer" target="_blank">
         /now movement
       </a>

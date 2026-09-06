@@ -2,7 +2,7 @@
 
 OuOwOuO 是一个以 Hono JSX 服务端渲染的多页面个人网站，用来持续发布项目、笔记、实验与生活记录。浏览器端只加载导航、搜索、动效和照片查看器所需的 Vanilla ES Modules，不使用 SPA 或 React Hydration。
 
-Production URL：<https://ouowouo.com/>
+Production URL：<https://0u0w0u0.com/>
 
 ## 技术栈
 
@@ -115,7 +115,7 @@ npx wrangler deploy --dry-run
 
 ## 内容系统
 
-Frontmatter 会在构建时校验必填字段、日期格式、URL-safe slug、枚举状态、图片 key 与同类 slug 重复。Markdown Raw HTML 已关闭。
+Frontmatter 会在构建时校验必填字段、真实日期、`updated >= date`、URL-safe slug、枚举状态、未知字段、项目 HTTP(S) 链接、图片 key 与同类 slug 重复。Markdown Raw HTML 已关闭。
 
 `draft: true` 的内容可以在开发环境查看；生产构建不会让它进入列表、详情或搜索索引。Sitemap 与 RSS 会再次显式过滤 draft。
 
@@ -151,7 +151,7 @@ stack:
 featured: true
 ```
 
-`status` 只能是 `active`、`complete` 或 `archived`。`cover` 必须在 `src/content/projects.ts` 的图片映射中存在。
+`status` 只能是 `active`、`complete` 或 `archived`。`cover` 必须在 `src/content/projects.ts` 的图片映射中存在；非空的 `repository` 与 `demo` 必须是 HTTP(S) URL。
 
 ### 添加 Lab
 
@@ -166,6 +166,10 @@ emoji: 🧪
 
 `status` 只能是 `LIVE`、`BETA` 或 `WIP`。
 
+## 搜索
+
+搜索索引由服务端从已发布的 Projects、Notes 与 Lab 内容生成。页面 HTML 不再内联整份索引；访客第一次打开 `⌘/Ctrl + K` 搜索时请求 `/api/search-index`，随后在当前页面生命周期内复用内存缓存。搜索 API 使用短时可更新缓存。
+
 ## SEO
 
 - 所有页面输出独立的 title、description、canonical、Open Graph 与 Twitter metadata。
@@ -175,11 +179,11 @@ emoji: 🧪
 - `/rss.xml` 自动收录已发布 Notes，使用绝对 URL。
 - 首页输出 `WebSite` 与 `Person` JSON-LD；笔记输出 `BlogPosting`；项目输出 `SoftwareApplication`；实验详情输出 `CreativeWork`。
 - 404 与 500 页面明确输出 `noindex`。
-- Production base URL 只在 `src/data.ts` 维护：`https://ouowouo.com/`。
+- Production base URL 只在 `src/data.ts` 维护：`https://0u0w0u0.com/`。
 
 ## 性能与可访问性
 
-- 所有内容图片包含 intrinsic width/height、响应式 `sizes`、WebP/fallback 与异步解码。
+- 所有内容图片包含 intrinsic width/height、WebP/fallback 与异步解码；组件保留 `sizes` 接口，后续增加多尺寸 `srcset` 时无需改页面调用方。
 - 首屏 hero WebP 使用 preload，详情 hero 使用高优先级；折叠线下图片使用 lazy loading。
 - Manrope（400–700）与 Caveat（700）只自托管使用到的 Latin WOFF2；中文回退到系统字体。
 - 静态资源使用可更新的缓存策略，不使用 `immutable`，因为当前文件名没有内容 hash。
@@ -196,7 +200,7 @@ Hono SSR 响应使用逐请求 nonce 的 Content Security Policy，同时发送�
 - `Permissions-Policy`
 - `frame-ancestors 'none'`
 
-`public/_headers` 为 Worker 直接返回的静态资源补充缓存和安全响应头。CSP 只允许本站脚本、样式、字体、图片和连接；没有第三方字体或 tracking 来源。
+`public/_headers` 为 Worker 直接返回的静态资源补充缓存和安全响应头。CSP 只允许本站脚本、样式、字体、图片和连接；没有第三方字体或 tracking 来源。SSR JSX 不输出 `style="..."` 属性，动画延迟由浏览器模块通过 CSSOM 设置，避免与严格的 `style-src 'self'` 冲突。
 
 ## Cloudflare 配置
 
@@ -234,7 +238,7 @@ CI 只验证代码，不进行 Cloudflare 部署。
 
 仓库刻意不提供会被误触的一键 deploy script。获得明确上线授权后，再执行以下流程：
 
-1. 确认 Cloudflare 账户、Worker 名称和 `ouowouo.com` zone 归属正确。
+1. 确认 Cloudflare 账户、Worker 名称和 `0u0w0u0.com` zone 归属正确。
 2. 确认 Node 版本、干净工作区、CI 和全部本地质量命令通过。
 3. 运行 `npm run build` 与 `npx wrangler deploy --dry-run`，检查 bundle、assets 和 bindings。
 4. 在 Cloudflare 中确认 production custom domain/route、DNS 与预览 URL 策略。

@@ -6,7 +6,8 @@ import type { ImageAsset } from '../data'
  *
  * `width`/`height` are always emitted so the browser can reserve the box
  * before the bytes arrive (CLS = 0); CSS still controls the rendered size.
- * `priority` marks the one above-the-fold image: eager + high fetchpriority.
+ * When an asset exposes multiple WebP widths, `sizes` lets the browser select
+ * the smallest suitable candidate. `priority` marks the above-the-fold image.
  */
 export const Picture: FC<{
   image: ImageAsset
@@ -16,13 +17,12 @@ export const Picture: FC<{
   sizes?: string
 }> = ({ image, alt, lazy = true, priority = false, sizes }) => (
   <picture>
-    <source srcset={image.webp} type="image/webp" sizes={sizes} />
+    <source srcset={image.webpSrcset ?? image.webp} type="image/webp" sizes={sizes} />
     <img
       src={image.fallback}
       alt={alt ?? image.alt}
       width={image.w}
       height={image.h}
-      sizes={sizes}
       loading={priority ? 'eager' : lazy ? 'lazy' : undefined}
       fetchpriority={priority ? 'high' : undefined}
       decoding="async"

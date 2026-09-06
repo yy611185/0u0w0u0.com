@@ -96,9 +96,8 @@ export const MobileDrawer: FC = () => {
   )
 }
 
-export const SiteShell: FC<{ children: Child; searchData: string; lightbox?: boolean }> = ({
+export const SiteShell: FC<{ children: Child; lightbox?: boolean }> = ({
   children,
-  searchData,
   lightbox = false
 }) => {
   const nonce = useRequestContext().get('cspNonce')
@@ -115,12 +114,6 @@ export const SiteShell: FC<{ children: Child; searchData: string; lightbox?: boo
       <Footer />
       <SearchModal />
       {lightbox && <Lightbox />}
-      <script
-        nonce={nonce}
-        id="site-data"
-        type="application/json"
-        dangerouslySetInnerHTML={{ __html: searchData }}
-      ></script>
       <script nonce={nonce} type="module" src="/static/js/main.js"></script>
     </>
   )

@@ -1,13 +1,12 @@
 /**
  * search.js — ⌘/Ctrl+K command palette.
- * Rebuilt on top of core's scroll-lock/focus-trap helpers, with proper
- * combobox/listbox semantics and DOM-built rows (no innerHTML injection).
+ * Loads the search index only when search is first opened, then keeps it in
+ * memory for the rest of the page lifetime.
  */
 import {
   $,
   $$,
   activateOverlay,
-  DATA,
   isTopOverlay,
   lockScroll,
   unlockScroll,
@@ -26,7 +25,8 @@ export function initSearch() {
   const openBtn = openBtns[0]
   if (!modal || !input || !results || !openBtn) return
 
-  const INDEX = Array.isArray(DATA.index) ? DATA.index : []
+  let index = null
+  let indexPromise = null
   let rows = [] // flat list of { el, href } in render order
   let focusIdx = 0
   let releaseTrap = null
@@ -35,6 +35,29 @@ export function initSearch() {
 
   const isOpen = () => modal.getAttribute('data-open') === 'true'
 
+  function loadIndex() {
+    if (index) return Promise.resolve(index)
+    if (indexPromise) return indexPromise
+
+    indexPromise = fetch('/api/search-index', {
+      headers: { Accept: 'application/json' }
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error(`search index request failed: ${response.status}`)
+        return response.json()
+      })
+      .then((data) => {
+        index = Array.isArray(data) ? data : []
+        return index
+      })
+      .catch((error) => {
+        indexPromise = null
+        throw error
+      })
+
+    return indexPromise
+  }
+
   function matches(query, item) {
     if (!query) return true
     const haystack =
@@ -42,11 +65,11 @@ export function initSearch() {
     return haystack.includes(query.toLowerCase())
   }
 
-  function buildRow(item, index) {
+  function buildRow(item, rowIndex) {
     const row = document.createElement('div')
     row.className = 'search-item'
     row.setAttribute('role', 'option')
-    row.id = `search-opt-${index}`
+    row.id = `search-opt-${rowIndex}`
     row.setAttribute('aria-selected', 'false')
     row.dataset.href = item.href
 
@@ -72,25 +95,32 @@ export function initSearch() {
     return row
   }
 
+  function renderMessage(message) {
+    results.textContent = ''
+    rows = []
+    focusIdx = 0
+    input.removeAttribute('aria-activedescendant')
+    const state = document.createElement('div')
+    state.className = 'search-empty'
+    state.textContent = message
+    results.append(state)
+  }
+
   function render(query) {
-    const list = INDEX.filter((i) => matches(query, i))
+    const list = (index || []).filter((item) => matches(query, item))
     results.textContent = ''
     rows = []
     focusIdx = 0
 
     if (!list.length) {
-      const empty = document.createElement('div')
-      empty.className = 'search-empty'
-      empty.textContent = '没有匹配的结果 — 试试 "项目" 或 "笔记"'
-      results.append(empty)
-      input.removeAttribute('aria-activedescendant')
+      renderMessage('没有匹配的结果 — 试试 "项目" 或 "笔记"')
       return
     }
 
     const groups = new Map()
-    list.forEach((i) => {
-      if (!groups.has(i.kind)) groups.set(i.kind, [])
-      groups.get(i.kind).push(i)
+    list.forEach((item) => {
+      if (!groups.has(item.kind)) groups.set(item.kind, [])
+      groups.get(item.kind).push(item)
     })
 
     const frag = document.createDocumentFragment()
@@ -113,15 +143,14 @@ export function initSearch() {
   }
 
   function updateFocus() {
-    rows.forEach((r, i) => {
+    rows.forEach((row, i) => {
       const active = i === focusIdx
-      r.el.setAttribute('data-focus', active ? 'true' : 'false')
-      r.el.setAttribute('aria-selected', active ? 'true' : 'false')
+      row.el.setAttribute('data-focus', active ? 'true' : 'false')
+      row.el.setAttribute('aria-selected', active ? 'true' : 'false')
     })
     const current = rows[focusIdx]
     if (current) {
       current.el.scrollIntoView({ block: 'nearest' })
-      // Announce the highlighted row without moving real focus off the input.
       input.setAttribute('aria-activedescendant', current.el.id)
     } else {
       input.removeAttribute('aria-activedescendant')
@@ -141,7 +170,20 @@ export function initSearch() {
       releaseOverlay = activateOverlay(modal)
       releaseTrap = trapFocus(modal)
       input.value = ''
-      render('')
+
+      if (index) {
+        render('')
+      } else {
+        renderMessage('正在加载搜索索引…')
+        loadIndex()
+          .then(() => {
+            if (isOpen()) render(input.value)
+          })
+          .catch(() => {
+            if (isOpen()) renderMessage('搜索暂时不可用，请稍后再试。')
+          })
+      }
+
       requestAnimationFrame(() => input.focus())
     } else {
       modal.setAttribute('aria-hidden', 'true')
@@ -157,7 +199,6 @@ export function initSearch() {
         releaseTrap = null
       }
       input.removeAttribute('aria-activedescendant')
-      // Return focus where the user left it.
       if (
         lastFocused instanceof HTMLElement &&
         lastFocused !== document.body &&
@@ -170,15 +211,14 @@ export function initSearch() {
     }
   }
 
-  function activate(index) {
-    const row = rows[index]
+  function activate(rowIndex) {
+    const row = rows[rowIndex]
     if (!row) return
     const href = row.href
     setOpen(false)
     const target = href.startsWith('#') ? document.getElementById(href.slice(1)) : null
     if (target) {
       history.replaceState(null, '', href)
-      // Wait a frame for the scroll lock to lift before scrolling.
       requestAnimationFrame(() => {
         scrollToTarget(target)
         if (!target.hasAttribute('tabindex')) {
@@ -192,58 +232,62 @@ export function initSearch() {
 
   openBtns.forEach((button) => button.addEventListener('click', () => setOpen(true)))
   $$('[data-search-close]').forEach((el) => el.addEventListener('click', () => setOpen(false)))
-  input.addEventListener('input', (e) => render(e.target.value))
-
-  results.addEventListener('click', (e) => {
-    const row = e.target.closest('.search-item')
-    if (!row) return
-    activate(rows.findIndex((r) => r.el === row))
+  input.addEventListener('input', (event) => {
+    if (index) render(event.target.value)
   })
-  // Hovering a row moves the keyboard cursor with it — no double highlight.
-  results.addEventListener('pointermove', (e) => {
-    const row = e.target.closest('.search-item')
+
+  results.addEventListener('click', (event) => {
+    const row = event.target.closest('.search-item')
     if (!row) return
-    const i = rows.findIndex((r) => r.el === row)
+    activate(rows.findIndex((item) => item.el === row))
+  })
+  results.addEventListener('pointermove', (event) => {
+    const row = event.target.closest('.search-item')
+    if (!row) return
+    const i = rows.findIndex((item) => item.el === row)
     if (i >= 0 && i !== focusIdx) {
       focusIdx = i
       updateFocus()
     }
   })
 
-  document.addEventListener('keydown', (e) => {
-    // ⌘K / Ctrl+K toggles from anywhere.
-    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-      e.preventDefault()
+  document.addEventListener('keydown', (event) => {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault()
       setOpen(!isOpen())
       return
     }
-    if (e.key === '/' && !isOpen() && !/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) {
-      e.preventDefault()
+    if (
+      event.key === '/' &&
+      !isOpen() &&
+      !/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)
+    ) {
+      event.preventDefault()
       setOpen(true)
       return
     }
     if (!isOpen() || !isTopOverlay(modal)) return
 
-    if (e.key === 'Escape') {
-      e.preventDefault()
-      e.stopImmediatePropagation()
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      event.stopImmediatePropagation()
       setOpen(false)
-    } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-      e.preventDefault()
+    } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault()
       if (!rows.length) return
-      const dir = e.key === 'ArrowDown' ? 1 : -1
+      const dir = event.key === 'ArrowDown' ? 1 : -1
       focusIdx = (focusIdx + dir + rows.length) % rows.length
       updateFocus()
-    } else if (e.key === 'Home') {
-      e.preventDefault()
+    } else if (event.key === 'Home') {
+      event.preventDefault()
       focusIdx = 0
       updateFocus()
-    } else if (e.key === 'End') {
-      e.preventDefault()
+    } else if (event.key === 'End') {
+      event.preventDefault()
       focusIdx = Math.max(0, rows.length - 1)
       updateFocus()
-    } else if (e.key === 'Enter') {
-      e.preventDefault()
+    } else if (event.key === 'Enter') {
+      event.preventDefault()
       activate(focusIdx)
     }
   })
