@@ -16,6 +16,8 @@ import {
 
 const KIND_LABEL = { project: '项目', note: '笔记', lab: '实验', page: '页面' }
 const ORDER = ['project', 'note', 'lab', 'page']
+const DEFAULT_LIMITS = { project: 3, note: 3, lab: 2, page: 4 }
+const QUERY_LIMIT = 30
 
 export function initSearch() {
   const modal = $('#search-modal')
@@ -65,6 +67,12 @@ export function initSearch() {
     return haystack.includes(query.toLowerCase())
   }
 
+  function defaultResults(items) {
+    return ORDER.flatMap((kind) =>
+      items.filter((item) => item.kind === kind).slice(0, DEFAULT_LIMITS[kind] ?? 0)
+    )
+  }
+
   function buildRow(item, rowIndex) {
     const row = document.createElement('div')
     row.className = 'search-item'
@@ -107,7 +115,10 @@ export function initSearch() {
   }
 
   function render(query) {
-    const list = (index || []).filter((item) => matches(query, item))
+    const normalizedQuery = query.trim()
+    const list = normalizedQuery
+      ? (index || []).filter((item) => matches(normalizedQuery, item)).slice(0, QUERY_LIMIT)
+      : defaultResults(index || [])
     results.textContent = ''
     rows = []
     focusIdx = 0

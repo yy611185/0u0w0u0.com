@@ -207,7 +207,9 @@ app.get('/projects/:slug', (c) => {
       title: project.title,
       description: project.description,
       canonical: `/projects/${project.slug}`,
-      image: project.cover.fallback
+      image: project.cover.fallback,
+      imageWidth: project.cover.w,
+      imageHeight: project.cover.h
     }
   )
 })

@@ -13,15 +13,19 @@ import { initLightbox } from './lightbox.js'
 import { initInteraction } from './interaction.js'
 
 function boot() {
-  initAnimations()
+  const cleanupAnimations = initAnimations()
   initNavigation()
   initSearch()
   initLightbox()
   initInteraction()
 
-  // Honour a mid-session switch to "reduce motion": show everything at rest.
-  onReducedMotionChange((e) => {
-    if (e.matches) settleAll()
+  // Honour a mid-session switch to "reduce motion": stop ambient motion and
+  // settle every entrance immediately. Re-enabling motion does not restart
+  // already-completed entrances during the same page lifetime.
+  onReducedMotionChange((event) => {
+    if (!event.matches) return
+    cleanupAnimations()
+    settleAll()
   })
 }
 
