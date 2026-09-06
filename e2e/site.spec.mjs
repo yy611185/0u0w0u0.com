@@ -11,7 +11,9 @@ function collectCspErrors(page) {
   return errors
 }
 
-test('homepage renders without CSP errors and same-page contact navigation works', async ({ page }) => {
+test('homepage renders without CSP errors and same-page contact navigation works', async ({
+  page
+}) => {
   const errors = collectCspErrors(page)
   await page.goto('/')
 
@@ -22,7 +24,9 @@ test('homepage renders without CSP errors and same-page contact navigation works
   expect(errors).toEqual([])
 })
 
-test('search index is lazy-loaded once and keyboard activation navigates', async ({ page }) => {
+test('search index is lazy-loaded once per page and keyboard activation navigates', async ({
+  page
+}) => {
   let indexRequests = 0
   page.on('request', (request) => {
     if (new URL(request.url()).pathname === '/api/search-index') indexRequests += 1
@@ -34,14 +38,16 @@ test('search index is lazy-loaded once and keyboard activation navigates', async
   await page.keyboard.press('Control+K')
   await expect(page.locator('#search-modal')).toHaveAttribute('aria-hidden', 'false')
   await expect.poll(() => indexRequests).toBe(1)
+  await page.keyboard.press('Escape')
+
+  await page.keyboard.press('Control+K')
+  await expect(page.locator('#search-modal')).toHaveAttribute('aria-hidden', 'false')
+  expect(indexRequests).toBe(1)
+
   await page.locator('#search-input').fill('Hermes')
   await expect(page.locator('.search-item-title', { hasText: 'Hermes' })).toBeVisible()
   await page.keyboard.press('Enter')
   await expect(page).toHaveURL(/\/projects\/hermes$/)
-
-  await page.keyboard.press('Control+K')
-  await page.keyboard.press('Escape')
-  expect(indexRequests).toBe(1)
 })
 
 test('mobile drawer traps interaction and Escape restores the trigger', async ({ page }) => {
