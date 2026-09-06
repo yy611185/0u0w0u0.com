@@ -47,7 +47,6 @@ export const Hero: FC = () => (
       </div>
     </div>
     <div class="scroll-hint" aria-hidden="true">
-      <div class="mouse"></div>
       <span>向下探索更多</span>
       <svg width="12" height="8" viewBox="0 0 12 8">
         <path
