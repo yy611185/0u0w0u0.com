@@ -18,7 +18,7 @@ export const SITE: SiteConfig = {
   name: 'OuOwOuO',
   title: 'OuOwOuO — Yang 的数字花园',
   description: 'OuOwOuO — Yang 的数字花园，记录学习、创造、项目与生活。',
-  url: 'https://ouowouo.com/',
+  url: 'https://0u0w0u0.com/',
   social: {
     github: 'https://github.com/yy611185',
     email: 'mailto:yy050202@outlook.com'
@@ -62,18 +62,17 @@ export const IMAGES = {
   projectHermes: asset('project-hermes', 'jpg', 'Hermes 项目预览', 1024, 768)
 }
 
+export const NOW_META = {
+  label: 'September 2026',
+  updated: '2026-09-05',
+  updatedDisplay: '2026.09.05'
+} as const
+
 export const NOW_ITEMS = [
   { kind: 'read', emoji: '📖', label: '阅读', title: '纳瓦尔宝典' },
   { kind: 'make', emoji: '✏️', label: '创作中', title: '一些有意思的东西' },
   { kind: 'learn', emoji: '🎓', label: '学习', title: 'AI × 金融' },
   { kind: 'think', emoji: '💡', label: '思考', title: '一个更开放的未来' }
-]
-
-export const STATS = [
-  { kind: 'a', emoji: '🌱', num: '3', label: '项目', sub: '做过的作品' },
-  { kind: 'b', emoji: '📄', num: '5', label: '笔记', sub: '想法与写作' },
-  { kind: 'c', emoji: '🧪', num: '3', label: '实验', sub: '进行中的点子' },
-  { kind: 'd', emoji: '📷', num: '∞', label: '照片', sub: '值得记录的瞬间' }
 ]
 
 export type Photo = { image: ImageAsset; cap: string; span2?: boolean; row2?: boolean }
