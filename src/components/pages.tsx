@@ -305,7 +305,8 @@ export const NowPage: FC = () => (
       ))}
     </section>
     <p class="updated-note container">
-      最后更新于 <time datetime={NOW_META.updated}>{NOW_META.updatedDisplay}</time> · 灵感来自 Derek Sivers 的{' '}
+      最后更新于 <time datetime={NOW_META.updated}>{NOW_META.updatedDisplay}</time> · 灵感来自 Derek
+      Sivers 的{' '}
       <a href="https://nownownow.com/about" rel="noopener noreferrer" target="_blank">
         /now movement
       </a>
