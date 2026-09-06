@@ -18,7 +18,8 @@ declare module 'hono' {
 
 export const renderer = jsxRenderer((props, c) => {
   const { children } = props
-  const { title, description, canonical, image, type, robots } = resolvePageMeta(props, c.req.path)
+  const { title, description, canonical, image, imageWidth, imageHeight, type, robots } =
+    resolvePageMeta(props, c.req.path)
   const nonce = c.get('cspNonce')
 
   return (
@@ -39,8 +40,8 @@ export const renderer = jsxRenderer((props, c) => {
         <meta property="og:url" content={canonical} />
         <meta property="og:image" content={image} />
         <meta property="og:image:alt" content={`${title} 社交分享图`} />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
+        <meta property="og:image:width" content={String(imageWidth)} />
+        <meta property="og:image:height" content={String(imageHeight)} />
         <meta property="og:locale" content="zh_CN" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={title} />
