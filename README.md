@@ -1,58 +1,199 @@
 # OuOwOuO — Yang 的数字花园
 
-OuOwOuO 是一个以 Hono JSX 服务端渲染的多页面个人网站，用来持续发布项目、笔记、实验与生活记录。浏览器端只加载导航、搜索、动效和照片查看器所需的 Vanilla ES Modules，不使用 SPA 或 React Hydration。
+OuOwOuO 是一个运行在 Cloudflare Workers 上的个人数字花园，用来持续发布项目、笔记、实验、近况与生活记录。
 
-Production URL：<https://0u0w0u0.com/>
+网站采用 Hono JSX 服务端渲染，多页面输出完整 HTML；浏览器端只加载导航、搜索、动效和照片查看器所需的 Vanilla ES Modules，不使用 SPA，也不依赖 React Hydration。
+
+Production: <https://0u0w0u0.com/>
+
+## 当前状态
+
+- 已部署到 Cloudflare Workers，并使用 `0u0w0u0.com` 作为生产域名。
+- `main` 是受保护的生产基线，仓库启用了 `Protect main` Ruleset。
+- 所有代码变更通过 branch → Pull Request → required `verify` CI → merge 进入 `main`。
+- GitHub CI 会执行 TypeScript、ESLint、Prettier、Vitest、生产构建与 Playwright Chromium 测试。
+- 内容、搜索、SEO、Sitemap、RSS、404、响应式布局与可访问性交互均由同一套 SSR 应用维护。
+- 当前不依赖数据库、CMS、D1、KV 或第三方前端框架。
 
 ## 技术栈
 
 - Hono 4 + Hono JSX SSR
-- TypeScript（strict）
-- Vite 8 + Cloudflare 官方 Vite 插件
+- TypeScript 6（strict）
+- Vite 8 + Cloudflare 官方 Vite Plugin
 - Cloudflare Workers + Static Assets
-- MarkdownIt 内容解析
-- Vanilla JavaScript、原生 CSS、WebP 与自托管 WOFF2 字体
-- ESLint、Prettier、Vitest、Playwright、GitHub Actions
+- MarkdownIt
+- Vanilla JavaScript ES Modules
+- 原生 CSS
+- WebP / JPEG / PNG / SVG
+- 自托管 WOFF2 字体
+- Vitest
+- Playwright
+- ESLint + Prettier
+- GitHub Actions
+
+运行环境固定在 Node.js 24。
 
 ## 架构
 
 ```text
-Browser
-   ↓
-Cloudflare Workers Static Assets（图片、字体、CSS、JS）
-   ↓ 未匹配静态文件的请求
-Hono Worker（SSR、内容路由、搜索 API、SEO feeds）
+Visitor
+  ↓
+Cloudflare Edge
+  ├─ Static Assets
+  │   ├─ CSS / JS
+  │   ├─ Images / WebP
+  │   ├─ Fonts
+  │   └─ Favicons
+  │
+  └─ Hono Worker
+      ├─ SSR pages
+      ├─ Content routes
+      ├─ /api/search-index
+      ├─ /sitemap.xml
+      ├─ /robots.txt
+      └─ /rss.xml
 ```
 
-Cloudflare 官方 Vite 插件让开发和预览都运行在 Workers 的 `workerd` 环境中。Vite 构建后会生成供 Wrangler 使用的输出配置；根目录的 `wrangler.jsonc` 始终是人工维护的配置源。
+内容来自仓库中的 Markdown，在构建阶段读取、校验并生成页面数据。浏览器不会接收整份 Markdown 内容，也不会在客户端完成页面路由。
 
-## 目录结构
+## 主要功能
+
+### 多页面 SSR
+
+首页、项目、笔记、实验室、照片、近况、关于页和详情页全部由 Hono 在 Worker 中生成完整 HTML。
+
+### 内容系统
+
+`content/` 中的 Markdown frontmatter 会在构建阶段校验：
+
+- 必填字段
+- URL-safe slug
+- 真实日期
+- `updated >= date`
+- 枚举状态
+- 未知字段
+- HTTP(S) 项目链接
+- 图片 key
+- 同类内容重复 slug
+
+Markdown Raw HTML 已关闭。
+
+`draft: true` 的内容只在开发环境中可见；生产列表、详情、搜索索引、Sitemap 和 RSS 都不会包含 draft。
+
+### 搜索
+
+站内搜索使用 `⌘/Ctrl + K` 打开。
+
+搜索索引由服务端从已发布的 Projects、Notes、Lab 和固定页面生成。页面首次打开搜索时才请求 `/api/search-index`，随后复用当前页面生命周期内的内存缓存，避免把整份索引内联到每个 SSR 页面。
+
+### SEO
+
+页面会输出：
+
+- 独立 title 与 description
+- canonical URL
+- Open Graph metadata
+- Twitter Card metadata
+- OG 图片尺寸
+- JSON-LD
+- Sitemap
+- robots.txt
+- RSS
+
+首页输出 `WebSite` 与 `Person` JSON-LD；笔记使用 `BlogPosting`；项目使用 `SoftwareApplication`；实验详情使用 `CreativeWork`。
+
+404 与 500 页面会明确输出 `noindex`。
+
+生产 base URL 只在 `src/data.ts` 中维护：
+
+```text
+https://0u0w0u0.com/
+```
+
+### 图标与主屏幕支持
+
+站点同时提供：
+
+```text
+/static/favicon.svg
+/static/favicon-32x32.png
+/static/apple-touch-icon.png
+```
+
+HTML 同时声明 SVG favicon、32×32 PNG fallback 与 180×180 Apple Touch Icon，以覆盖现代浏览器、旧版 favicon 场景以及 iPhone/iPad 添加到主屏幕。
+
+### 性能
+
+- 首屏 Hero WebP preload
+- 图片包含 intrinsic width / height，降低 CLS
+- 内容图片使用 WebP + fallback
+- 折叠线下图片 lazy loading
+- Manrope 与 Caveat 字体自托管
+- 搜索索引按需加载
+- 手机端使用独立 Hero 背景构图，避免 16:9 图片在竖屏中过度裁切
+- 静态资源采用可更新缓存策略
+
+### 可访问性
+
+- Skip link
+- `focus-visible`
+- 移动端菜单焦点管理
+- Search dialog 焦点与键盘控制
+- Lightbox Escape / 方向键 / 焦点恢复
+- `inert`
+- `aria-hidden`
+- `aria-expanded`
+- 明确 accessible names
+- `prefers-reduced-motion` 支持
+
+## Security
+
+Hono SSR 响应会生成逐请求 nonce，并发送严格 Content Security Policy。
+
+当前应用层响应头包括：
+
+- `Content-Security-Policy`
+- `X-Content-Type-Options: nosniff`
+- `Referrer-Policy: strict-origin-when-cross-origin`
+- `Permissions-Policy`
+- `frame-ancestors 'none'`
+
+`public/_headers` 为 Worker 直接返回的静态资源补充缓存和安全响应头。
+
+HTTP → HTTPS、WWW 重定向、TLS 与 HSTS 属于 Cloudflare Zone / Edge 配置，不在仓库源码中维护；修改这些设置后应直接验证生产响应。
+
+## 项目结构
 
 ```text
 content/
-├── lab/                    # 实验 Markdown
-├── notes/                  # 笔记 Markdown
-└── projects/               # 项目 Markdown
+├── lab/                       # 实验 Markdown
+├── notes/                     # 笔记 Markdown
+└── projects/                  # 项目 Markdown
+
 public/
-├── _headers                # Static Assets 缓存与安全响应头
+├── _headers                   # Static Assets headers
 └── static/
-    ├── assets/             # 图片与 WebP
-    ├── fonts/              # 自托管 WOFF2 与 OFL license
-    ├── js/                 # Vanilla ES Modules
+    ├── assets/                # 图片与 WebP
+    ├── fonts/                 # 自托管字体
+    ├── js/                    # Vanilla ES Modules
     ├── favicon.svg
+    ├── favicon-32x32.png
+    ├── apple-touch-icon.png
     └── style.css
+
 src/
-├── components/             # 布局、页面与共享 JSX
-├── content/                # 内容解析、校验、查询
-├── data.ts                 # 站点、导航、图片等配置
-├── index.tsx               # Hono 路由与 Worker 入口
-├── renderer.tsx            # 文档框架与页面 metadata
-├── search.ts               # 搜索索引
-└── seo.ts                  # URL、Sitemap、RSS、robots 工具
+├── components/                # Layout / Sections / Pages / Shared JSX
+├── content/                   # Markdown 解析、校验、查询
+├── data.ts                    # 站点、导航、图片配置
+├── index.tsx                  # Hono routes / Worker entry
+├── renderer.tsx               # HTML shell / metadata
+├── search.ts                  # Search index
+└── seo.ts                     # Canonical / Sitemap / RSS / robots
+
 e2e/
-└── site.spec.mjs           # Playwright 浏览器 smoke tests
+└── site.spec.mjs              # Playwright browser tests
+
 .github/workflows/ci.yml
-eslint.config.js
 playwright.config.mjs
 vite.config.ts
 wrangler.jsonc
@@ -60,78 +201,52 @@ wrangler.jsonc
 
 ## 环境要求
 
-- Node.js 24 LTS；推荐使用 `.nvmrc` 中的 `24.20.0`
-- npm 11+
+- Node.js `>=24 <25`
+- npm
 
-项目 `engines` 限定 Node 24，以统一 Vite、Vitest、ESLint 和 Wrangler 的运行环境。
-
-## 安装
-
-```powershell
-Set-Location "D:\0u0w0u0.com"
-npm install
-```
-
-CI 和可复现环境使用：
-
-```powershell
-npm ci
-```
-
-Playwright 测试依赖已固定在 `devDependencies` 与 `package-lock.json` 中。首次在本机运行浏览器测试前安装 Chromium：
-
-```powershell
-npx playwright install chromium
-```
+推荐使用仓库 `.nvmrc` 指定的 Node 版本。
 
 ## 本地开发
 
-```powershell
+```bash
+git clone https://github.com/yy611185/0u0w0u0.com.git
+cd 0u0w0u0.com
+npm ci
 npm run dev
 ```
 
-Vite 会启动本地 Workers 开发环境并显示访问地址。常用质量命令：
+首次运行 Playwright 前安装 Chromium：
 
-```powershell
+```bash
+npx playwright install chromium
+```
+
+## 常用命令
+
+```bash
+npm run dev
+npm run build
+npm run preview
 npm run typecheck
 npm run lint
 npm run format
 npm run format:check
 npm run test
 npm run test:e2e
+npm run cf-typegen
 ```
 
-`npm run test` 运行 Vitest 单元测试；`npm run test:e2e` 运行 Playwright 浏览器测试，并由 `playwright.config.mjs` 自动启动本地 preview server。
+其中：
 
-历史 `public/static/style.css` 被明确排除在全量 Prettier 重排之外，避免仅为格式产生大规模 CSS diff；新增 CSS 仍应沿用现有风格。
+- `npm run test`：Vitest 单元测试
+- `npm run test:e2e`：Playwright Chromium 浏览器测试
+- `npm run build`：生成 Worker bundle 与 Static Assets
+- `npm run preview`：在本地 Workers 环境预览生产构建
+- `npm run cf-typegen`：重新生成 Cloudflare binding 类型
 
-## Build 与本地预览
+## 内容维护
 
-```powershell
-npm run build
-npm run preview
-```
-
-`npm run build` 会生成 Worker bundle、source map、Static Assets 目录和 Wrangler 输出配置。`npm run preview` 使用 `workerd` 预览最新构建，不会部署。
-
-可进行不发布的 Wrangler 验证：
-
-```powershell
-npx wrangler --version
-npx wrangler types
-npm run build
-npx wrangler deploy --dry-run
-```
-
-`--dry-run` 只编译并检查待上传内容，不会创建线上 deployment。
-
-## 内容系统
-
-Frontmatter 会在构建时校验必填字段、真实日期、`updated >= date`、URL-safe slug、枚举状态、未知字段、项目 HTTP(S) 链接、图片 key 与同类 slug 重复。Markdown Raw HTML 已关闭。
-
-`draft: true` 的内容可以在开发环境查看；生产构建不会让它进入列表、详情或搜索索引。Sitemap 与 RSS 会再次显式过滤 draft。
-
-### 添加 Note
+### Note
 
 在 `content/notes/` 新建 `.md`：
 
@@ -148,7 +263,7 @@ draft: false
 ---
 ```
 
-### 添加 Project
+### Project
 
 在 `content/projects/` 新建 `.md`，除通用字段外还需要：
 
@@ -163,9 +278,17 @@ stack:
 featured: true
 ```
 
-`status` 只能是 `active`、`complete` 或 `archived`。`cover` 必须在 `src/content/projects.ts` 的图片映射中存在；非空的 `repository` 与 `demo` 必须是 HTTP(S) URL。
+`status` 只能是：
 
-### 添加 Lab
+```text
+active
+complete
+archived
+```
+
+非空 `repository` 和 `demo` 必须使用 HTTP(S) URL。
+
+### Lab
 
 在 `content/lab/` 新建 `.md`，除通用字段外还需要：
 
@@ -176,88 +299,116 @@ stack:
 emoji: 🧪
 ```
 
-`status` 只能是 `LIVE`、`BETA` 或 `WIP`。
+`status` 只能是：
 
-## 搜索
+```text
+LIVE
+BETA
+WIP
+```
 
-搜索索引由服务端从已发布的 Projects、Notes 与 Lab 内容生成。页面 HTML 不再内联整份索引；访客第一次打开 `⌘/Ctrl + K` 搜索时请求 `/api/search-index`，随后在当前页面生命周期内复用内存缓存。搜索 API 使用短时可更新缓存。
+## CI 与分支策略
 
-## SEO
+`.github/workflows/ci.yml` 会在 Pull Request 和 `main` push 时运行 `verify`：
 
-- 所有页面输出独立的 title、description、canonical、Open Graph 与 Twitter metadata。
-- Canonical 使用无尾斜杠策略，根路径除外。
-- `/sitemap.xml` 从静态路由和发布内容自动生成。
-- `/robots.txt` 允许正常抓取并指向 Sitemap。
-- `/rss.xml` 自动收录已发布 Notes，使用绝对 URL。
-- 首页输出 `WebSite` 与 `Person` JSON-LD；笔记输出 `BlogPosting`；项目输出 `SoftwareApplication`；实验详情输出 `CreativeWork`。
-- 404 与 500 页面明确输出 `noindex`。
-- Production base URL 只在 `src/data.ts` 维护：`https://0u0w0u0.com/`。
+```text
+npm ci
+  ↓
+typecheck
+  ↓
+ESLint
+  ↓
+Prettier
+  ↓
+Vitest
+  ↓
+Vite production build
+  ↓
+Install Chromium
+  ↓
+Playwright browser tests
+```
 
-## 性能与可访问性
+`main` 由仓库 Ruleset 保护。正常开发流程为：
 
-- 所有内容图片包含 intrinsic width/height、WebP/fallback 与异步解码；组件保留 `sizes` 接口，后续增加多尺寸 `srcset` 时无需改页面调用方。
-- 首屏 hero WebP 使用 preload，详情 hero 使用高优先级；折叠线下图片使用 lazy loading。
-- Manrope（400–700）与 Caveat（700）只自托管使用到的 Latin WOFF2；中文回退到系统字体。
-- 静态资源使用可更新的缓存策略，不使用 `immutable`，因为当前文件名没有内容 hash。
-- 动效在 `prefers-reduced-motion: reduce` 下停止循环、滚动 reveal、视差与 tilt。
-- 导航、抽屉、搜索和 Lightbox 支持焦点圈、焦点陷阱、Escape、方向键与焦点恢复。
-- 页面包含 skip link，弹层使用 `inert`、`aria-hidden`、`aria-expanded` 和明确的 accessible name。
+```text
+feature / fix branch
+        ↓
+Pull Request
+        ↓
+required verify CI
+        ↓
+merge
+        ↓
+main
+        ↓
+Cloudflare production deployment
+```
 
-## Security Headers
+不要直接绕过 PR 修改 `main`。
 
-Hono SSR 响应使用逐请求 nonce 的 Content Security Policy，同时发送：
+## Cloudflare Workers
 
-- `X-Content-Type-Options: nosniff`
-- `Referrer-Policy: strict-origin-when-cross-origin`
-- `Permissions-Policy`
-- `frame-ancestors 'none'`
+`wrangler.jsonc` 当前配置：
 
-`public/_headers` 为 Worker 直接返回的静态资源补充缓存和安全响应头。CSP 只允许本站脚本、样式、字体、图片和连接；没有第三方字体或 tracking 来源。SSR JSX 不输出 `style="..."` 属性，动画延迟由浏览器模块通过 CSSOM 设置，避免与严格的 `style-src 'self'` 冲突。
-
-## Cloudflare 配置
-
-`wrangler.jsonc` 使用当前 Workers 架构并配置：
-
-- Hono Worker 入口 `src/index.tsx`
-- 最新兼容日期
+- Worker name: `ouowouo-digital-garden`
+- Entry: `src/index.tsx`
 - `nodejs_compat`
-- Workers Static Assets 的无尾斜杠 HTML 策略
-- Workers Logs 与低采样率 traces
+- Workers Static Assets
+- 无尾斜杠 HTML 策略
+- Workers Logs
+- 1% trace sampling
 
-P2 不创建 D1、R2、KV、Turnstile 或其他 production binding。未来添加 binding 后，必须重新运行：
+当前没有 D1、R2、KV、Turnstile 等 production binding。
 
-```powershell
+未来增加 binding 后应重新运行：
+
+```bash
 npm run cf-typegen
 npm run typecheck
 ```
 
-不要手写 binding interface，也不要把 secret 写进源码或 `wrangler.jsonc`。本地 secret 使用已被 Git 忽略的 `.dev.vars`。
+Secrets 不应提交到源码或 `wrangler.jsonc`。本地 secret 使用 Git 忽略的 `.dev.vars`，生产 secret 由 Cloudflare 管理。
 
-## CI
+## 发布检查
 
-`.github/workflows/ci.yml` 在 pull request 和推送到 `main` 时执行：
+生产发布后建议至少验证：
 
-1. `npm ci`
-2. `npm run typecheck`
-3. `npm run lint`
-4. `npm run format:check`
-5. `npm run test`
-6. `npm run build`
-7. `npx playwright install --with-deps chromium`
-8. `npm run test:e2e`
+```text
+/
+/projects
+/notes
+/lab
+/photos
+/about
+/now
+/sitemap.xml
+/robots.txt
+/rss.xml
+/random-404-path
+```
 
-Playwright runner 本身由 `npm ci` 从锁定依赖安装，不再在 CI 中临时执行 `npm install --no-save`。CI 只验证代码，不进行 Cloudflare 部署。
+同时检查：
 
-## Production deployment
+- HTTP status
+- HTTPS / redirect behavior
+- canonical
+- Open Graph metadata
+- CSP 与其他安全响应头
+- Static Assets cache headers
+- Ctrl/Cmd + K 搜索
+- Mobile drawer
+- Lightbox
+- iPhone Safari
+- Desktop Chrome
+- Lighthouse Mobile / Desktop
 
-仓库刻意不提供会被误触的一键 deploy script。获得明确上线授权后，再执行以下流程：
+## 设计原则
 
-1. 确认 Cloudflare 账户、Worker 名称和 `0u0w0u0.com` zone 归属正确。
-2. 确认 Node 版本、干净工作区、CI 和全部本地质量命令通过。
-3. 运行 `npm run build` 与 `npx wrangler deploy --dry-run`，检查 bundle、assets 和 bindings。
-4. 在 Cloudflare 中确认 production custom domain/route、DNS 与预览 URL 策略。
-5. 仅在授权后运行 `npx wrangler deploy`。
-6. 上线后检查首页、内容详情、404、Sitemap、robots、RSS、安全响应头和缓存响应头。
-7. 如需 Cloudflare Web Analytics，先从控制台取得真实配置；不要提交 token 或虚构 ID。
+这个项目优先保持简单、快速、可读和长期可维护：
 
-本项目当前是 production-ready 本地配置，尚未进行 production deployment、DNS 修改或远端资源创建。
+- SSR 优先，而不是为了交互引入完整 SPA
+- 内容优先，而不是为了少量 Markdown 引入 CMS
+- 原生浏览器能力优先，而不是增加不必要的客户端依赖
+- 所有生产代码通过 CI 和真实浏览器测试后进入 `main`
+- 基础设施设置与应用代码分离，Cloudflare Edge 配置不伪装成仓库源码
