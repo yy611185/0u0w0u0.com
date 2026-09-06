@@ -1,11 +1,18 @@
 import type { FC } from 'hono/jsx'
-import { IMAGES, NOW_ITEMS, PHOTOS, STATS } from '../data'
+import { IMAGES, NOW_ITEMS, PHOTOS } from '../data'
 import { getAllLabItems, getAllNotes, getAllProjects } from '../content'
 import { Arrow, Card, Picture, SectionHead, TagList } from './shared'
 
 const PROJECTS = getAllProjects()
 const NOTES = getAllNotes()
 const LAB = getAllLabItems()
+
+const STATS = [
+  { kind: 'a', emoji: '🌱', num: String(PROJECTS.length), label: '项目', sub: '做过的作品' },
+  { kind: 'b', emoji: '📄', num: String(NOTES.length), label: '笔记', sub: '想法与写作' },
+  { kind: 'c', emoji: '🧪', num: String(LAB.length), label: '实验', sub: '进行中的点子' },
+  { kind: 'd', emoji: '📷', num: '∞', label: '照片', sub: '值得记录的瞬间' }
+]
 
 /* ============ HERO ============ */
 export const Hero: FC = () => (
