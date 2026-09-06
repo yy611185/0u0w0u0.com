@@ -3,16 +3,6 @@
  * No DOM side effects on import; everything here is a pure helper.
  */
 
-/** Server-injected bootstrap payload (social links + search index). */
-export const DATA = (() => {
-  try {
-    const el = document.getElementById('site-data')
-    return el ? JSON.parse(el.textContent || '{}') : {}
-  } catch {
-    return {}
-  }
-})()
-
 const reduceQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
 
 /** True when the visitor has asked the OS for less motion. */
