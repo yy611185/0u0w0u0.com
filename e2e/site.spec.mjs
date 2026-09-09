@@ -50,6 +50,47 @@ test('search index is lazy-loaded once per page and keyboard activation navigate
   await expect(page).toHaveURL(/\/projects\/hermes$/)
 })
 
+test('search ignores IME confirmation and keeps input editing keys native', async ({ page }) => {
+  await page.goto('/notes')
+  await page.keyboard.press('Control+K')
+  await expect(page.locator('.search-item').first()).toBeVisible()
+
+  const input = page.locator('#search-input')
+  await input.fill('Hermes')
+  const wasNotCanceled = await input.evaluate((element) =>
+    element.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: 'Enter',
+        bubbles: true,
+        cancelable: true,
+        isComposing: true
+      })
+    )
+  )
+
+  expect(wasNotCanceled).toBe(true)
+  await expect(page).toHaveURL(/\/notes$/)
+  await expect(page.locator('#search-modal')).toHaveAttribute('aria-hidden', 'false')
+
+  await input.evaluate((element) => element.setSelectionRange(3, 3))
+  await page.keyboard.press('Home')
+  await expect(input).toHaveJSProperty('selectionStart', 0)
+  await page.keyboard.press('End')
+  await expect(input).toHaveJSProperty('selectionStart', 'Hermes'.length)
+})
+
+test('Enter on the search close button closes instead of opening a result', async ({ page }) => {
+  await page.goto('/notes')
+  await page.keyboard.press('Control+K')
+  await expect(page.locator('.search-item').first()).toBeVisible()
+
+  await page.locator('[data-search-close].search-close').focus()
+  await page.keyboard.press('Enter')
+
+  await expect(page.locator('#search-modal')).toHaveAttribute('aria-hidden', 'true')
+  await expect(page).toHaveURL(/\/notes$/)
+})
+
 test('mobile drawer traps interaction and Escape restores the trigger', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/')

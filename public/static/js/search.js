@@ -246,6 +246,20 @@ export function initSearch() {
   input.addEventListener('input', (event) => {
     if (index) render(event.target.value)
   })
+  input.addEventListener('keydown', (event) => {
+    if (event.isComposing || !isOpen() || !isTopOverlay(modal)) return
+
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault()
+      if (!rows.length) return
+      const dir = event.key === 'ArrowDown' ? 1 : -1
+      focusIdx = (focusIdx + dir + rows.length) % rows.length
+      updateFocus()
+    } else if (event.key === 'Enter') {
+      event.preventDefault()
+      activate(focusIdx)
+    }
+  })
 
   results.addEventListener('click', (event) => {
     const row = event.target.closest('.search-item')
@@ -263,6 +277,8 @@ export function initSearch() {
   })
 
   document.addEventListener('keydown', (event) => {
+    if (event.isComposing) return
+
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
       event.preventDefault()
       setOpen(!isOpen())
@@ -283,23 +299,6 @@ export function initSearch() {
       event.preventDefault()
       event.stopImmediatePropagation()
       setOpen(false)
-    } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-      event.preventDefault()
-      if (!rows.length) return
-      const dir = event.key === 'ArrowDown' ? 1 : -1
-      focusIdx = (focusIdx + dir + rows.length) % rows.length
-      updateFocus()
-    } else if (event.key === 'Home') {
-      event.preventDefault()
-      focusIdx = 0
-      updateFocus()
-    } else if (event.key === 'End') {
-      event.preventDefault()
-      focusIdx = Math.max(0, rows.length - 1)
-      updateFocus()
-    } else if (event.key === 'Enter') {
-      event.preventDefault()
-      activate(focusIdx)
     }
   })
 }
