@@ -23,7 +23,7 @@ export const Hero: FC = () => (
     <div class="hero-inner">
       <div class="hero-text">
         <h1 class="hero-title">
-          <span class="spark">OuOwOuO</span>
+          <span class="spark">0u0w0u0</span>
         </h1>
         <p class="hero-subtitle">Yang 的数字花园</p>
         {/* A list of roles, marked up as one — the dots are pure decoration. */}
@@ -171,7 +171,7 @@ export const Explore: FC = () => (
               <br />
               能建造更明亮的明天。
             </p>
-            <footer class="quote-author">— OuOwOuO</footer>
+            <footer class="quote-author">— 0u0w0u0</footer>
           </blockquote>
           <a href="/about" class="quote-card-link" aria-label="了解更多关于 Yang"></a>
         </Card>
