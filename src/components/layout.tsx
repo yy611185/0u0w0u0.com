@@ -12,7 +12,7 @@ export const Nav: FC = () => {
   return (
     <nav class="nav" id="site-nav" aria-label="主导航">
       <div class="nav-inner">
-        <a href="/" class="nav-brand" aria-label="OuOwOuO 首页">
+        <a href="/" class="nav-brand" aria-label="0u0w0u0 首页">
           {SITE.name}
         </a>
 
@@ -88,7 +88,7 @@ export const MobileDrawer: FC = () => {
           ))}
         </ul>
         <div class="mobile-menu-foot">
-          <span>OuOwOuO · 数字花园</span>
+          <span>0u0w0u0 · 数字花园</span>
           <span>ESC 关闭</span>
         </div>
       </div>
@@ -151,8 +151,8 @@ export const Footer: FC = () => (
       </div>
       <div class="footer-bottom">
         <div class="footer-copyright">
-          <strong>OuOwOuO.com</strong>
-          <span>© 2026 OuOwOuO。保持好奇，继续前行。</span>
+          <strong>0u0w0u0.com</strong>
+          <span>© 2026 0u0w0u0。保持好奇，继续前行。</span>
         </div>
         {(SITE.social.github || SITE.social.email) && (
           <ul class="footer-social">
@@ -227,7 +227,7 @@ export const SearchModal: FC = () => (
           <kbd>↑</kbd>
           <kbd>↓</kbd> 选择 · <kbd>Enter</kbd> 打开
         </span>
-        <span aria-hidden="true">OuOwOuO Search</span>
+        <span aria-hidden="true">0u0w0u0 Search</span>
       </div>
     </div>
   </div>

@@ -116,7 +116,7 @@ app.get('/', (c) =>
               '@context': 'https://schema.org',
               '@type': 'Person',
               name: 'Yang',
-              description: 'OuOwOuO 数字花园的作者',
+              description: '0u0w0u0 数字花园的作者',
               url: SITE.url,
               sameAs: SITE.social.github ? [SITE.social.github] : []
             }
@@ -264,7 +264,7 @@ app.get('/now', (c) =>
 app.get('/about', (c) =>
   c.render(shell(<AboutPage />), {
     title: '关于',
-    description: '关于 Yang，以及 OuOwOuO 这个持续生长的个人网站与数字花园。'
+    description: '关于 Yang，以及 0u0w0u0 这个持续生长的个人网站与数字花园。'
   })
 )
 
@@ -272,7 +272,7 @@ app.notFound((c) => {
   c.status(404)
   return c.render(shell(<NotFoundPage />), {
     title: '404',
-    description: '这里好像什么都没有。返回 OuOwOuO 数字花园继续探索。',
+    description: '这里好像什么都没有。返回 0u0w0u0 数字花园继续探索。',
     canonical: c.req.path,
     robots: 'noindex, follow'
   })

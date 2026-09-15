@@ -320,7 +320,7 @@ export const AboutPage: FC = () => (
     <PageHero
       eyebrow="About Yang"
       title="保持好奇，然后动手"
-      description="我是 Yang，一个在学习、技术、金融和创造之间来回探索的人。OuOwOuO 是我在互联网上留的一盏灯。"
+      description="我是 Yang，一个在学习、技术、金融和创造之间来回探索的人。0u0w0u0 是我在互联网上留的一盏灯。"
     />
     <section class="about-page container">
       <div class="about-portrait">
@@ -333,7 +333,7 @@ export const AboutPage: FC = () => (
       <div class="about-copy prose">
         <h2>关于这个名字</h2>
         <p>
-          OuOwOuO
+          0u0w0u0
           看起来像一只盯着屏幕的猫，也像某种没有标准答案的表情。这个名字提醒我：互联网不只能高效和严肃，它也可以保留一点奇怪、柔软与个人趣味。
         </p>
         <h2>我在做什么</h2>
