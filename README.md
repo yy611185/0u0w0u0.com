@@ -6,6 +6,8 @@
 
 Production: <https://0u0w0u0.com/>
 
+Fitness V1 子系统开发与数据库初始化说明：[docs/fitness-v1.md](docs/fitness-v1.md)。本地使用 `npm run fitness:setup` 初始化 D1 后访问 `/fitness`；远端 D1 与访问保护尚未部署。
+
 ## 当前状态
 
 - 已部署到 Cloudflare Workers，并使用 `0u0w0u0.com` 作为生产域名。
@@ -13,7 +15,7 @@ Production: <https://0u0w0u0.com/>
 - 所有代码变更通过 branch → Pull Request → required `verify` CI → merge 进入 `main`。
 - GitHub CI 会执行 TypeScript、ESLint、Prettier、Vitest、生产构建与 Playwright Chromium 测试。
 - 内容、搜索、SEO、Sitemap、RSS、404、响应式布局与可访问性交互均由同一套 SSR 应用维护。
-- 当前不依赖数据库、CMS、D1、KV 或第三方前端框架。
+- 公共内容不依赖数据库或 CMS；Fitness 子系统使用 D1，前端继续采用原生模块。
 
 ## 技术栈
 
@@ -359,7 +361,7 @@ Cloudflare production deployment
 - Workers Logs
 - 1% trace sampling
 
-当前没有 D1、R2、KV、Turnstile 等 production binding。
+Fitness 已声明 `FITNESS_DB` D1 binding，远端数据库 ID 尚待配置。当前没有 R2、KV、Turnstile binding。
 
 未来增加 binding 后应重新运行：
 

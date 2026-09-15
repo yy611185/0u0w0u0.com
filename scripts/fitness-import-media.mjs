@@ -1,0 +1,74 @@
+import { createHash } from 'node:crypto'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { fileURLToPath } from 'node:url'
+import path from 'node:path'
+
+// Pin the exact dataset and retain its license alongside the hosted assets.
+const commit = 'a859101d633a01c4a1a920d6a8ce41dabba0705f'
+const upstream = `https://raw.githubusercontent.com/yuhonas/free-exercise-db/${commit}`
+const root = fileURLToPath(new URL('../', import.meta.url))
+const mediaDirectory = path.join(root, 'public/static/fitness/media')
+const catalog = JSON.parse(await readFile(path.join(root, 'src/fitness/catalog.json'), 'utf8'))
+const verify = process.argv.includes('--verify')
+const manifestPath = path.join(mediaDirectory, 'manifest.json')
+const hash = (data) => createHash('sha256').update(data).digest('hex')
+
+async function download(url) {
+  const response = await fetch(url, { signal: AbortSignal.timeout(30_000) })
+  if (!response.ok) throw new Error(`Download failed: ${response.status} ${url}`)
+  return Buffer.from(await response.arrayBuffer())
+}
+
+if (verify) {
+  const manifest = JSON.parse(await readFile(manifestPath, 'utf8'))
+  if (manifest.commit !== commit) throw new Error('Unexpected media manifest revision')
+  for (const item of manifest.files) {
+    const bytes = await readFile(path.join(mediaDirectory, item.file))
+    if (hash(bytes) !== item.sha256) throw new Error(`Media checksum mismatch: ${item.file}`)
+  }
+  const files = new Set(manifest.files.map((item) => `/static/fitness/media/${item.file}`))
+  for (const exercise of catalog) {
+    for (const frame of exercise.mediaFrames) {
+      if (!files.has(frame)) throw new Error(`Untracked media: ${frame}`)
+    }
+  }
+  console.log(`Verified ${manifest.files.length} files for ${catalog.length} exercises.`)
+} else {
+  await mkdir(mediaDirectory, { recursive: true })
+  const files = []
+  for (const name of ['LICENSE.md', 'README.md']) {
+    const bytes = await download(`${upstream}/${name}`)
+    const file = `free-exercise-db-${name}`
+    await writeFile(path.join(mediaDirectory, file), bytes)
+    files.push({ file, sourceUrl: `${upstream}/${name}`, sha256: hash(bytes), bytes: bytes.length })
+  }
+  for (const exercise of catalog.filter((item) => item.mediaFrames.length > 0)) {
+    const sourceId = exercise.sourceUrl
+      .split('/')
+      .at(-1)
+      .replace(/\.json$/, '')
+    const source = JSON.parse(await download(`${upstream}/exercises/${sourceId}.json`))
+    if (source.images.length !== exercise.mediaFrames.length) {
+      throw new Error(`Source frame count changed: ${exercise.id}`)
+    }
+    for (const [index, sourceImage] of source.images.entries()) {
+      const sourceUrl = `${upstream}/exercises/${sourceImage}`
+      const bytes = await download(sourceUrl)
+      if (bytes[0] !== 0xff || bytes[1] !== 0xd8) throw new Error(`Invalid JPEG: ${sourceUrl}`)
+      const file = path.basename(exercise.mediaFrames[index])
+      await writeFile(path.join(mediaDirectory, file), bytes)
+      files.push({
+        file,
+        exerciseId: exercise.id,
+        sourceUrl,
+        sha256: hash(bytes),
+        bytes: bytes.length
+      })
+    }
+  }
+  await writeFile(
+    manifestPath,
+    `${JSON.stringify({ source: 'Free Exercise DB', commit, license: 'Unlicense', files }, null, 2)}\n`
+  )
+  console.log(`Imported ${files.length - 2} local images from ${commit}.`)
+}

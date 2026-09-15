@@ -32,6 +32,7 @@ export const NAV_LINKS = [
   { href: '/lab', label: '实验室' },
   { href: '/now', label: '近况' },
   { href: '/photos', label: '照片' },
+  { href: '/fitness', label: 'Fitness' },
   { href: '/#contact', label: '联系' }
 ]
 
