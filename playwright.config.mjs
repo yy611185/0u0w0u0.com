@@ -12,7 +12,7 @@ export default defineConfig({
   },
   webServer: {
     command:
-      'node scripts/fitness-e2e-setup.mjs && npm run preview -- --host 127.0.0.1 --port 4173',
+      'npm run build && node scripts/fitness-e2e-setup.mjs && npm run preview -- --host 127.0.0.1 --port 4173',
     env: { FITNESS_E2E: '1' },
     url: 'http://127.0.0.1:4173',
     reuseExistingServer: false,

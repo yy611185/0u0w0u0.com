@@ -23,7 +23,7 @@ npm run fitness:setup
 npm run dev
 ```
 
-然后访问 `/fitness`。开发数据由本地 Workers 的 D1 SQLite 实例持久化在 `.wrangler/state/`；不是 LocalStorage 或 mock。部署到同一个远端 D1 后，Windows 和 iPhone 使用相同的服务器记录。当前尚未创建远端数据库或部署生产。
+然后访问 `/fitness`。开发数据由本地 Workers 的 D1 SQLite 实例持久化在 `.wrangler/state/`；不是 LocalStorage 或 mock。生产 Worker `0u0w0u0-com` 已绑定同一个远端 D1，因此 Windows 和 iPhone 使用相同的服务器记录。
 
 - `migrations/fitness/0001_fitness.sql`：Profile、Exercise、WorkoutPlan、WorkoutDay、WorkoutExercise、WorkoutSession、训练动作快照、ExerciseSet、BodyWeight、Achievement、TrainingSuggestion，共 11 张表。
 - `0002_integrity.sql`：数据库写入与训练完成约束。
@@ -32,17 +32,15 @@ npm run dev
 - `seeds/fitness.sql`：1 个 Profile、36 动作、4 训练日、24 计划条目、5 徽章定义。没有虚构体重或训练记录。
 - `npm run fitness:seed:generate` 从动作库重新生成 seed；重复 seed 更新动作资料，但保留个人记录、调整后的目标和徽章状态。
 
-`wrangler.jsonc` 声明 `FITNESS_DB`，没有伪造远端 database_id。准备上线时创建 D1 后将真实 ID 写入配置，然后执行远端 migration / seed；部署继续走项目既有 PR → CI → merge 流程。
+`wrangler.jsonc` 声明了生产 `FITNESS_DB`：数据库名 `0u0w0u0-fitness`，ID `0748fab6-b07e-4dd7-b65c-68d7e244191f`。远端已完成 0001–0004 migration 与 seed，当前为 36 个动作、4 个训练日、24 个计划条目，个人训练/体重记录仍为 0。生产 Worker 已部署到实际自定义域名绑定的 `0u0w0u0-com`，部署版本为 `a3e054f9-fda2-434c-a7c5-3f7b750df8d0`；`workers.dev` 入口已关闭。
 
 ```powershell
-npx wrangler d1 create ouowouo-fitness
-# 将创建结果的 database_id 加到 wrangler.jsonc 的 FITNESS_DB 条目
 npm run cf-typegen
 npx wrangler d1 migrations apply FITNESS_DB --remote
 npx wrangler d1 execute FITNESS_DB --remote --file seeds/fitness.sql
 ```
 
-当前代码库是公开网站，需求文档则假设仅本人访问。上线前需要确定 `/fitness`、`/fitness/*` 的网站级访问保护（建议 Cloudflare Access，同时覆盖 workers.dev/预览入口或关闭相应入口）。目前未新建登录系统，也没有把 Origin 校验误作身份认证。生产访问方式仍待用户选择。
+当前账号的 Cloudflare Access 应用列表为空；未登录请求 `/fitness/dashboard` 返回 200，说明网站级访问保护尚未启用，不能把它视为已保护。应在 Cloudflare Zero Trust 中为 `https://0u0w0u0.com/fitness` 和 `https://0u0w0u0.com/fitness/*` 建立 Access self-hosted application，并只允许本人的身份。生产配置已关闭 `workers.dev` 入口，避免绕过自定义域名策略。Zero Trust 免费版显示为 `$0/月`，但账号尚未激活套餐；激活页要求账单资料、付款方式和超额使用扣费授权，因此必须由账户持有人确认后才能继续创建 Access 应用。应用仍不依赖站内登录系统，也没有把 Origin 校验误作身份认证。
 
 ## 一致性与操作语义
 
@@ -56,7 +54,7 @@ npx wrangler d1 execute FITNESS_DB --remote --file seeds/fitness.sql
 
 ## 素材与扩展
 
-素材明细见 [fitness-media.md](fitness-media.md)。34 个动作有本地双帧图，哑铃高脚杯深蹲和坡度快走提供文字回退。没有连续 GIF/MP4/WebM；没有将双帧图片宣称为视频。肌群 SVG 为原创简化区域图（CC0-1.0），由页面组件渲染；`muscleImageUrl` 保留供以后接入独立素材。
+素材明细见 [fitness-media.md](fitness-media.md)。36 个动作均有本地双帧图；哑铃高脚杯深蹲和坡度快走使用本项目生成的 PNG。高脚杯深蹲另有一段明确标注为壶铃参考的真实连续 WebM 视频。没有将双帧图片宣称为视频。肌群 SVG 为原创简化区域图（CC0-1.0），由页面组件渲染；`muscleImageUrl` 保留供以后接入独立素材。
 
 `TrainingAnalysisService` 是版本化建议接口，当前只有透明的双进阶规则；建议需要单独确认，确认记录与目标更新在事务中完成。没有调用 AI API。未来 provider 可复用相同数据/建议结构，不能绕过确认直接改计划。
 
@@ -74,8 +72,8 @@ node scripts/fitness-import-media.mjs --verify
 
 17 个单元测试包括跨周循环、时区边界、连续达标、不完整体重窗口、进阶条件。10 个浏览器测试包括既有网站回归，以及真实 D1 的跨浏览器同步、并发开始、重复提交、旧版本冲突、同源保护、提前完成拒绝、部分组保留、完成幂等、A→B、提前结束不推进、体重更正及非法日期。
 
-浏览器测试使用独立 `.wrangler/fitness-e2e/`，初始化脚本只清理该测试数据库。测试包含 1440px 桌面和 390px iPhone 尺寸、实际手机表单提交、输入字号/点击尺寸/横向溢出。当前是 Chromium 移动模拟，尚未在真实 iPhone Safari 或 WebKit 上验收。
+浏览器测试使用独立 `.wrangler/fitness-e2e/`，初始化脚本只清理该测试数据库。`npm run test:e2e` 在 Chromium 覆盖完整网站回归，`npm run test:e2e:fitness:webkit` 另用 WebKit 覆盖 Fitness 的服务器持久化、390px iPhone 尺寸、实际手机表单提交、输入字号/点击尺寸/横向溢出和本地视频标记；两者仍是桌面环境模拟，不能替代真实 iPhone Safari。真实设备清单见 [fitness-iphone-safari-acceptance.md](fitness-iphone-safari-acceptance.md)。
 
 ## 后续
 
-优先确定访问保护并部署远端 D1，然后在真实 iPhone Safari 试练一次；按实际体验补充两个缺图动作及许可清晰的连续视频。V1 数据查询面向个人规模；多年记录增长后可按需加入历史分页，不改变现有训练数据模型。
+剩余外部验收只有两项：在 Cloudflare Zero Trust 启用并确认 `/fitness` 的 Access 保护，以及按清单用真实 iPhone Safari 完成一次试练。V1 数据查询面向个人规模；多年记录增长后可按需加入历史分页，不改变现有训练数据模型。

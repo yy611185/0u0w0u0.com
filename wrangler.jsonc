@@ -1,13 +1,15 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "ouowouo-digital-garden",
+  "name": "0u0w0u0-com",
+  "workers_dev": false,
   "main": "./src/index.tsx",
   "compatibility_date": "2026-09-06",
   "compatibility_flags": ["nodejs_compat"],
   "d1_databases": [
     {
       "binding": "FITNESS_DB",
-      "database_name": "ouowouo-fitness",
+      "database_name": "0u0w0u0-fitness",
+      "database_id": "0748fab6-b07e-4dd7-b65c-68d7e244191f",
       "migrations_dir": "migrations/fitness"
     }
   ],

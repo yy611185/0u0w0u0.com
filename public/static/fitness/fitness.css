@@ -677,6 +677,26 @@
   color: var(--fit-muted);
   padding: 10px;
 }
+.fit-app .fit-video {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #edf0e9;
+}
+.fit-app .fit-video-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 9px;
+}
+.fit-app .fit-video video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  background: #172019;
+  border-radius: 12px;
+}
 .fit-app .fit-attribution {
   font-size: 11px;
   color: var(--fit-muted);
