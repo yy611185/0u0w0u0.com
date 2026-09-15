@@ -6,7 +6,7 @@ OuOwOuO 是一个运行在 Cloudflare Workers 上的个人数字花园，用来�
 
 Production: <https://0u0w0u0.com/>
 
-Fitness V1 子系统开发与数据库初始化说明：[docs/fitness-v1.md](docs/fitness-v1.md)。本地使用 `npm run fitness:setup` 初始化 D1 后访问 `/fitness`；远端 D1 与访问保护尚未部署。
+Fitness V1 子系统开发与数据库初始化说明：[docs/fitness-v1.md](docs/fitness-v1.md)。本地使用 `npm run fitness:setup` 初始化 D1 后访问 `/fitness`；生产远端 D1 与 Worker 已部署，Cloudflare Access 仍待启用。
 
 ## 当前状态
 
@@ -220,7 +220,7 @@ npm run dev
 首次运行 Playwright 前安装 Chromium：
 
 ```bash
-npx playwright install chromium
+npx playwright install chromium webkit
 ```
 
 ## 常用命令
@@ -242,6 +242,7 @@ npm run cf-typegen
 
 - `npm run test`：Vitest 单元测试
 - `npm run test:e2e`：Playwright Chromium 浏览器测试
+- `npm run test:e2e:fitness:webkit`：Fitness 的 Playwright WebKit 兼容测试
 - `npm run build`：生成 Worker bundle 与 Static Assets
 - `npm run preview`：在本地 Workers 环境预览生产构建
 - `npm run cf-typegen`：重新生成 Cloudflare binding 类型
@@ -353,7 +354,7 @@ Cloudflare production deployment
 
 `wrangler.jsonc` 当前配置：
 
-- Worker name: `ouowouo-digital-garden`
+- Worker name: `0u0w0u0-com`
 - Entry: `src/index.tsx`
 - `nodejs_compat`
 - Workers Static Assets
@@ -361,7 +362,7 @@ Cloudflare production deployment
 - Workers Logs
 - 1% trace sampling
 
-Fitness 已声明 `FITNESS_DB` D1 binding，远端数据库 ID 尚待配置。当前没有 R2、KV、Turnstile binding。
+Fitness 已声明 `FITNESS_DB` D1 binding，远端数据库 ID 为 `0748fab6-b07e-4dd7-b65c-68d7e244191f`。当前没有 R2、KV、Turnstile binding。
 
 未来增加 binding 后应重新运行：
 

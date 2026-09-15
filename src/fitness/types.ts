@@ -21,6 +21,17 @@ export type Exercise = {
   repsMin: number
   repsMax: number
   durationSeconds: number | null
+  video?: ExerciseVideo
+}
+export type ExerciseVideo = {
+  url: string
+  type: string
+  poster: string
+  source: string
+  sourceUrl: string
+  license: string
+  attribution: string
+  note: string
 }
 export type Profile = {
   id: number

@@ -1,0 +1,49 @@
+{
+  "source": "Project-managed generated images and licensed video",
+  "generatedAt": "2026-09-15",
+  "license": "Per-file metadata",
+  "files": [
+    {
+      "file": "goblet-squat-0.png",
+      "exerciseId": "goblet-squat",
+      "role": "start position",
+      "sourceUrl": "https://openai.com/policies/terms-of-use/",
+      "sha256": "41dc708ca43b943e9d68528550b5fedeed0f1b43a6130ac7f8fb7789054c0fbf",
+      "bytes": 1931288
+    },
+    {
+      "file": "goblet-squat-1.png",
+      "exerciseId": "goblet-squat",
+      "role": "bottom position",
+      "sourceUrl": "https://openai.com/policies/terms-of-use/",
+      "sha256": "8aba35ab1e5e89e681606756269ca00a1c6c2abbcc6ce87f57c35ea187f6c78a",
+      "bytes": 1856670
+    },
+    {
+      "file": "incline-walk-0.png",
+      "exerciseId": "incline-walk",
+      "role": "walking phase one",
+      "sourceUrl": "https://openai.com/policies/terms-of-use/",
+      "sha256": "1b2f11b22125228a6af09d59e2efabf497c25f719e60260a82031787c9548197",
+      "bytes": 1991393
+    },
+    {
+      "file": "incline-walk-1.png",
+      "exerciseId": "incline-walk",
+      "role": "walking phase two",
+      "sourceUrl": "https://openai.com/policies/terms-of-use/",
+      "sha256": "b584aaf3c16f6b77dffb182df38f1362b3fbdfe3fbe03fb4fb217875a4763012",
+      "bytes": 1893880
+    },
+    {
+      "file": "kettlebell-goblet-squat.webm",
+      "exerciseId": "goblet-squat",
+      "role": "continuous reference video",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Kettlebell_Goblet_Squat.webm",
+      "license": "CC BY-SA 4.0",
+      "attribution": "Taco fleur",
+      "sha256": "6243dac8a45745f8c4b23c1c5b31f91f51b86cd7438fa1399caa0da930ada2bd",
+      "bytes": 3197075
+    }
+  ]
+}

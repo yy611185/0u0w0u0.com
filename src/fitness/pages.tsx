@@ -588,6 +588,33 @@ function ExerciseDetail({ data, exerciseId }: { data: FitnessData; exerciseId?: 
               暂未收录许可明确的对应图片。请参考下方动作步骤与常见错误。
             </Empty>
           )}
+          {exercise.video && (
+            <div class="fit-video">
+              <div class="fit-video-heading">
+                <strong>连续视频</strong>
+                <span class="fit-caption">可控循环 · 点击播放</span>
+              </div>
+              <video
+                controls
+                muted
+                loop
+                playsinline
+                preload="metadata"
+                poster={exercise.video.poster}
+                aria-label={`${exercise.nameZh}连续动作视频`}
+              >
+                <source src={exercise.video.url} type={exercise.video.type} />
+              </video>
+              <p class="fit-caption">{exercise.video.note}</p>
+              <p class="fit-attribution">
+                视频来源：
+                <a href={exercise.video.sourceUrl} target="_blank" rel="noopener noreferrer">
+                  {exercise.video.source}
+                </a>{' '}
+                · {exercise.video.license} · {exercise.video.attribution}
+              </p>
+            </div>
+          )}
           <p class="fit-attribution">
             素材：
             <a href={exercise.sourceUrl} target="_blank" rel="noopener noreferrer">

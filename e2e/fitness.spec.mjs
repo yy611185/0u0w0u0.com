@@ -10,7 +10,7 @@ test.describe('Fitness V1 persisted training loop', () => {
     browser,
     baseURL
   }, testInfo) => {
-    test.setTimeout(120_000)
+    test.setTimeout(testInfo.project.name === 'webkit' ? 300_000 : 120_000)
     const origin = new URL(baseURL).origin
     const desktopContext = await browser.newContext({
       baseURL,
@@ -44,6 +44,10 @@ test.describe('Fitness V1 persisted training loop', () => {
       expect(response.status()).toBe(200)
       expect(response.headers()['cache-control']).toContain('no-store')
       return response.json()
+    }
+
+    async function goto(page, path) {
+      return page.goto(path, { waitUntil: 'domcontentloaded' })
     }
 
     async function post(context, action, body, status = 200, requestOrigin = origin) {
@@ -112,9 +116,9 @@ test.describe('Fitness V1 persisted training loop', () => {
       const equipment = [...new Set(data.exercises.flatMap((exercise) => exercise.equipment))]
       const startBody = (id) => ({ id, location: '健身房', equipment })
 
-      await desktop.goto('/fitness/history')
+      await goto(desktop, '/fitness/history')
       await expect(desktop.getByRole('heading', { name: '训练日记还是空白' })).toBeVisible()
-      await phone.goto('/fitness/workout')
+      await goto(phone, '/fitness/workout')
       await expect(phone.getByRole('button', { name: /开始 Day A 训练/ })).toBeVisible()
 
       const firstId = randomUUID()
@@ -138,7 +142,7 @@ test.describe('Fitness V1 persisted training loop', () => {
       expect(firstSlot.sets).toBe(3)
 
       for (const page of [desktop, phone]) {
-        await page.goto('/fitness/workout')
+        await goto(page, '/fitness/workout')
         await usableWorkout(page)
       }
       await desktop.screenshot({ path: testInfo.outputPath('fitness-workout-desktop.png') })
@@ -236,24 +240,36 @@ test.describe('Fitness V1 persisted training loop', () => {
       expect(data.sessions.find((item) => item.id === session.id)).toEqual(finished)
       expect(data.sessions.filter((item) => item.status === 'completed')).toHaveLength(1)
 
-      await desktop.goto('/fitness/dashboard')
+      await goto(desktop, '/fitness/dashboard')
       await expect(desktop.locator('#fit-next-title')).toHaveText(days[1].name)
-      await desktop.goto('/fitness/history')
+      await goto(desktop, '/fitness/history')
       await expect(
         desktop.locator(`a.fit-session-row[href="/fitness/history/${session.id}"]`)
       ).toContainText('2 组')
-      await desktop.goto(`/fitness/history/${session.id}`)
+      await goto(desktop, `/fitness/history/${session.id}`)
       const table = desktop.getByRole('table', { name: '杠铃卧推每组记录' })
       await expect(table.locator('tbody tr')).toHaveCount(2)
       await expect(table.locator('tbody tr').first()).toContainText('52.5')
       await expect(table.locator('tbody tr').nth(1)).toContainText('45')
       await expect(desktop.getByText('E2E 部分组真实保存', { exact: true })).toBeVisible()
-      await phone.goto('/fitness/exercises/barbell-bench-press')
+      await goto(phone, '/fitness/exercises/barbell-bench-press')
       await expect(phone.locator('.fit-history-sets')).toContainText('52.5 kg × 10 · RPE 7.5')
       await expect(phone.locator('.fit-history-sets')).toContainText('45 kg × 9 · RPE 7.5')
       await expect(
         phone.getByRole('img', { name: '每次训练最高重量趋势', exact: true })
       ).toBeVisible()
+      await goto(phone, '/fitness/exercises/goblet-squat')
+      await expect(
+        phone.locator('img[src="/static/fitness/media/goblet-squat-0.png"]')
+      ).toHaveCount(1)
+      await expect(
+        phone.locator('video source[src="/static/fitness/media/kettlebell-goblet-squat.webm"]')
+      ).toHaveCount(1)
+      await expect(phone.locator('video')).toHaveAttribute('playsinline', '')
+      await goto(phone, '/fitness/exercises/incline-walk')
+      await expect(
+        phone.locator('img[src="/static/fitness/media/incline-walk-0.png"]')
+      ).toHaveCount(1)
 
       const dayBId = randomUUID()
       data = await post(phoneContext, 'start', startBody(dayBId))
@@ -284,7 +300,7 @@ test.describe('Fitness V1 persisted training loop', () => {
       await weight(phoneContext, tomorrow.toISOString().slice(0, 10), '70', 400)
       data = await state()
       expect(data.weights).toEqual([{ date, weightKg: 69.8 }])
-      await desktop.goto('/fitness/progress')
+      await goto(desktop, '/fitness/progress')
       const weights = desktop.getByRole('table', { name: '体重记录' })
       await expect(weights.locator('tbody tr')).toHaveCount(1)
       await expect(weights).toContainText('69.8')

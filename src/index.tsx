@@ -41,10 +41,12 @@ app.use('*', async (c, next) => {
     [
       "default-src 'self'",
       `script-src 'self' 'nonce-${nonce}'`,
-      "style-src 'self'",
+      "style-src 'self' 'unsafe-inline'",
+      "style-src-attr 'unsafe-inline'",
       "img-src 'self' data:",
       "font-src 'self'",
       "connect-src 'self'",
+      "media-src 'self'",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",

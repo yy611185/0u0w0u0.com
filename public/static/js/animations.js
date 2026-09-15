@@ -26,8 +26,8 @@ const MAX_STAGGER_STEPS = 6 // cap so a long grid never crawls in
 
 /**
  * Mark the entrance targets and hand them their delays. Delays are applied
- * through the CSSOM instead of SSR style attributes so the strict CSP can keep
- * `style-src 'self'` without `unsafe-inline`.
+ * through the CSSOM instead of SSR style attributes. Safari/WebKit applies CSP
+ * to these dynamic declarations, so the response explicitly permits style attributes.
  */
 function primeLoadSequence() {
   LOAD_STEPS.forEach(([selector, delay]) => {

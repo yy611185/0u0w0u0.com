@@ -11,6 +11,7 @@ const mediaDirectory = path.join(root, 'public/static/fitness/media')
 const catalog = JSON.parse(await readFile(path.join(root, 'src/fitness/catalog.json'), 'utf8'))
 const verify = process.argv.includes('--verify')
 const manifestPath = path.join(mediaDirectory, 'manifest.json')
+const generatedManifestPath = path.join(mediaDirectory, 'generated-manifest.json')
 const hash = (data) => createHash('sha256').update(data).digest('hex')
 
 async function download(url) {
@@ -20,19 +21,37 @@ async function download(url) {
 }
 
 if (verify) {
-  const manifest = JSON.parse(await readFile(manifestPath, 'utf8'))
-  if (manifest.commit !== commit) throw new Error('Unexpected media manifest revision')
-  for (const item of manifest.files) {
-    const bytes = await readFile(path.join(mediaDirectory, item.file))
-    if (hash(bytes) !== item.sha256) throw new Error(`Media checksum mismatch: ${item.file}`)
-  }
-  const files = new Set(manifest.files.map((item) => `/static/fitness/media/${item.file}`))
-  for (const exercise of catalog) {
-    for (const frame of exercise.mediaFrames) {
-      if (!files.has(frame)) throw new Error(`Untracked media: ${frame}`)
+  const manifests = [
+    JSON.parse(await readFile(manifestPath, 'utf8')),
+    JSON.parse(await readFile(generatedManifestPath, 'utf8'))
+  ]
+  if (manifests[0].commit !== commit) throw new Error('Unexpected media manifest revision')
+  for (const manifest of manifests) {
+    for (const item of manifest.files) {
+      const bytes = await readFile(path.join(mediaDirectory, item.file))
+      if (bytes.length !== item.bytes || hash(bytes) !== item.sha256)
+        throw new Error(`Media checksum mismatch: ${item.file}`)
     }
   }
-  console.log(`Verified ${manifest.files.length} files for ${catalog.length} exercises.`)
+  const files = new Set(
+    manifests.flatMap((manifest) =>
+      manifest.files.map((item) => `/static/fitness/media/${item.file}`)
+    )
+  )
+  for (const exercise of catalog) {
+    const references = [
+      exercise.mediaUrl,
+      ...exercise.mediaFrames,
+      exercise.video?.url,
+      exercise.video?.poster
+    ].filter((reference) => reference?.startsWith('/static/fitness/media/'))
+    for (const reference of references) {
+      if (!files.has(reference)) throw new Error(`Untracked media: ${reference}`)
+    }
+  }
+  console.log(
+    `Verified ${manifests.reduce((total, manifest) => total + manifest.files.length, 0)} files for ${catalog.length} exercises.`
+  )
 } else {
   await mkdir(mediaDirectory, { recursive: true })
   const files = []
@@ -42,7 +61,10 @@ if (verify) {
     await writeFile(path.join(mediaDirectory, file), bytes)
     files.push({ file, sourceUrl: `${upstream}/${name}`, sha256: hash(bytes), bytes: bytes.length })
   }
-  for (const exercise of catalog.filter((item) => item.mediaFrames.length > 0)) {
+  const freeExerciseDbPrefix = `https://github.com/yuhonas/free-exercise-db/blob/${commit}/exercises/`
+  for (const exercise of catalog.filter((item) =>
+    item.sourceUrl.startsWith(freeExerciseDbPrefix)
+  )) {
     const sourceId = exercise.sourceUrl
       .split('/')
       .at(-1)

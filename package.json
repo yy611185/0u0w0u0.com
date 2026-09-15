@@ -14,6 +14,7 @@
     "format:check": "prettier --check .",
     "test": "vitest run src",
     "test:e2e": "playwright test",
+    "test:e2e:fitness:webkit": "playwright test e2e/fitness.spec.mjs --browser=webkit",
     "preview": "vite preview",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
     "fitness:seed:generate": "node scripts/fitness-seed.mjs",

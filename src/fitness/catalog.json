@@ -562,16 +562,29 @@
       "保持背部稳定，脚掌压地站起。"
     ],
     "commonMistakes": ["哑铃离身体太远。", "脚跟抬起或下蹲时膝盖内扣。"],
-    "mediaUrl": "",
-    "mediaFrames": [],
+    "mediaUrl": "/static/fitness/media/goblet-squat-0.png",
+    "mediaFrames": [
+      "/static/fitness/media/goblet-squat-0.png",
+      "/static/fitness/media/goblet-squat-1.png"
+    ],
     "muscleImageUrl": "",
-    "source": "Personal Fitness System V1 自有文本",
-    "sourceUrl": "/fitness/plan",
-    "license": "CC0-1.0",
+    "source": "本项目生成素材（OpenAI image generation）；中文说明由本站整理",
+    "sourceUrl": "https://openai.com/policies/terms-of-use/",
+    "license": "AI-generated project asset",
     "recommendedSets": 3,
     "repsMin": 8,
     "repsMax": 12,
-    "durationSeconds": null
+    "durationSeconds": null,
+    "video": {
+      "url": "/static/fitness/media/kettlebell-goblet-squat.webm",
+      "type": "video/webm",
+      "poster": "/static/fitness/media/goblet-squat-0.png",
+      "source": "Wikimedia Commons · Taco fleur",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Kettlebell_Goblet_Squat.webm",
+      "license": "CC BY-SA 4.0",
+      "attribution": "Taco fleur",
+      "note": "连续视频为壶铃高脚杯深蹲示范；本动作使用哑铃，请结合上方哑铃静态图确认握法。"
+    }
   },
   {
     "id": "single-arm-row",
@@ -649,12 +662,15 @@
       "结束前逐渐降低速度，待跑带停止后下机。"
     ],
     "commonMistakes": ["长期用双手悬挂在扶手上。", "坡度或速度超过当前可控范围。"],
-    "mediaUrl": "",
-    "mediaFrames": [],
+    "mediaUrl": "/static/fitness/media/incline-walk-0.png",
+    "mediaFrames": [
+      "/static/fitness/media/incline-walk-0.png",
+      "/static/fitness/media/incline-walk-1.png"
+    ],
     "muscleImageUrl": "",
-    "source": "Personal Fitness System V1 自有文本",
-    "sourceUrl": "/fitness/plan",
-    "license": "CC0-1.0",
+    "source": "本项目生成素材（OpenAI image generation）；中文说明由本站整理",
+    "sourceUrl": "https://openai.com/policies/terms-of-use/",
+    "license": "AI-generated project asset",
     "recommendedSets": 1,
     "repsMin": 0,
     "repsMax": 0,
