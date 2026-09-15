@@ -15,9 +15,9 @@ type SiteConfig = {
 }
 
 export const SITE: SiteConfig = {
-  name: 'OuOwOuO',
-  title: 'OuOwOuO — Yang 的数字花园',
-  description: 'OuOwOuO — Yang 的数字花园，记录学习、创造、项目与生活。',
+  name: '0u0w0u0',
+  title: '0u0w0u0 — Yang 的数字花园',
+  description: '0u0w0u0 — Yang 的数字花园，记录学习、创造、项目与生活。',
   url: 'https://0u0w0u0.com/',
   social: {
     github: 'https://github.com/yy611185',
