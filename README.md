@@ -1,6 +1,6 @@
-# OuOwOuO — Yang 的数字花园
+# 0u0w0u0 — Yang 的数字花园
 
-OuOwOuO 是一个运行在 Cloudflare Workers 上的个人数字花园，用来持续发布项目、笔记、实验、近况与生活记录。
+0u0w0u0 是一个运行在 Cloudflare Workers 上的个人数字花园，用来持续发布项目、笔记、实验、近况与生活记录。
 
 网站采用 Hono JSX 服务端渲染，多页面输出完整 HTML；浏览器端只加载导航、搜索、动效和照片查看器所需的 Vanilla ES Modules，不使用 SPA，也不依赖 React Hydration。
 
