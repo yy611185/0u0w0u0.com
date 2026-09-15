@@ -17,7 +17,7 @@ test('homepage renders without CSP errors and same-page contact navigation works
   const errors = collectCspErrors(page)
   await page.goto('/')
 
-  await expect(page.locator('h1')).toContainText('OuOwOuO')
+  await expect(page.locator('h1')).toContainText('0u0w0u0')
   await page.locator('.nav-cta').click()
   await expect(page).toHaveURL(/#contact$/)
   await expect(page.locator('#contact')).toBeInViewport()
