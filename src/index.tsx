@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { fitness } from './fitness/routes'
 import type { Child } from 'hono/jsx'
 import { renderer } from './renderer'
 import { SiteShell } from './components/layout'
@@ -66,6 +67,7 @@ app.use('*', async (c, next) => {
   await next()
 })
 app.use('*', renderer)
+app.route('/fitness', fitness)
 
 const shell = (children: Child, lightbox = false) => (
   <SiteShell lightbox={lightbox}>{children}</SiteShell>

@@ -58,6 +58,9 @@ export const renderer = jsxRenderer((props, c) => {
         <link rel="icon" href="/static/favicon-32x32.png" type="image/png" sizes="32x32" />
         <link rel="apple-touch-icon" href="/static/apple-touch-icon.png" sizes="180x180" />
         <link href="/static/style.css" rel="stylesheet" />
+        {c.req.path.startsWith('/fitness') && (
+          <link href="/static/fitness/fitness.css" rel="stylesheet" />
+        )}
         <link
           rel="preload"
           as="font"

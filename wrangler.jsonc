@@ -4,6 +4,13 @@
   "main": "./src/index.tsx",
   "compatibility_date": "2026-09-06",
   "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "FITNESS_DB",
+      "database_name": "ouowouo-fitness",
+      "migrations_dir": "migrations/fitness"
+    }
+  ],
   "assets": {
     "html_handling": "drop-trailing-slash"
   },
